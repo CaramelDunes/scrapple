@@ -10,7 +10,9 @@
     "validate": "svelte-check --ignore src/node_modules/@sapper"
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
     "compression": "^1.7.1",
+    "firebase-admin": "^9.3.0",
     "polka": "next",
     "sirv": "^1.0.0"
   },

@@ -1,0 +1,9 @@
+// Small utility class to stop TypeScript from complaining.
+export class ErrorWithCode extends Error {
+    code: number;
+
+    constructor(message: string, code: number) {
+        super(message);
+        this.code = code;
+    }
+}
