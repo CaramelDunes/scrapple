@@ -19,6 +19,7 @@ const [send, receive] = crossfade({
     }
 });
 
+let dropTarget = null;
 function draggable(node, params) {
     if (!params.isDraggable) return {};
 
@@ -28,10 +29,8 @@ function draggable(node, params) {
     let dragging = false;
     let initialX = null;
     let initialY = null;
-    let dropTarget = null;
 
     function handleMousedown(event) {
-        console.log('Mousedown');
         event.preventDefault();
 
         dragging = true;
@@ -73,27 +72,26 @@ function draggable(node, params) {
             const midY = rect.y + rect.height / 2;
 
             const candidate = document.elementFromPoint(midX, midY);
+            const oldDropTarget = dropTarget;
 
-            if (candidate && candidate.classList.contains('drop-target')) {
-                if (dropTarget) {
-                    if (candidate != dropTarget) {
-                        dropTarget.dispatchEvent(new CustomEvent('mydragleave', {
-                            detail: params.data
-                        }));
+            if (candidate
+                && candidate instanceof HTMLElement
+                && candidate.dataset.droptarget === "true") {
+                dropTarget = candidate;
+            } else {
+                dropTarget = null;
+            }
 
-                        candidate.dispatchEvent(new CustomEvent('mydragenter', {
-                            detail: params.data
-                        }));
-
-                        dropTarget = candidate;
-                    }
-                } else {
-                    dropTarget = candidate;
-
-                    candidate.dispatchEvent(new CustomEvent('mydragenter', {
+            if (oldDropTarget !== dropTarget) {
+                if (oldDropTarget)
+                    oldDropTarget.dispatchEvent(new CustomEvent('mydragleave', {
                         detail: params.data
                     }));
-                }
+
+                if (dropTarget)
+                    dropTarget.dispatchEvent(new CustomEvent('mydragenter', {
+                        detail: params.data
+                    }));
             }
 
             setTranslate(dx, dy, node);
@@ -106,6 +104,8 @@ function draggable(node, params) {
 
     function handleMouseup(event) {
         if (dragging) {
+            event.preventDefault();
+
             if (dropTarget) {
                 dropTarget.dispatchEvent(new CustomEvent('mydragleave', {
                     detail: params.data
@@ -113,7 +113,7 @@ function draggable(node, params) {
 
                 dropTarget.dispatchEvent(new CustomEvent('mydrop', {
                     detail: params.data
-                }))
+                }));
             }
 
             node.dispatchEvent(new CustomEvent('mydragend', {

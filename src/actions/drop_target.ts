@@ -1,15 +1,29 @@
 function dropTarget(node, params) {
-    node.addEventListener('dropped', handleDrop);
+    if (params.ondrop) {
+        node.addEventListener('mydrop', params.ondrop);
+    }
 
-    function handleDrop(event) {
-        event.preventDefault();
+    if (params.ondragenter) {
+        node.addEventListener('mydragenter', params.ondragenter);
+    }
 
-        console.log('Drop');
+    if (params.ondragleave) {
+        node.addEventListener('mydragleave', params.ondragleave);
     }
 
     return {
         destroy() {
-            node.removeEventListener('dropped', handleDrop);
+            if (params.ondrop) {
+                node.removeEventListener('mydrop', params.ondrop);
+            }
+
+            if (params.ondragenter) {
+                node.removeEventListener('mydragenter', params.ondragenter);
+            }
+
+            if (params.ondragleave) {
+                node.removeEventListener('mydragleave', params.ondragleave);
+            }
         }
     }
 }

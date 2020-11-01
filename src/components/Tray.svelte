@@ -4,11 +4,22 @@
     import Tile from "./Tile.svelte";
 
     import { createEventDispatcher } from "svelte";
+    import { dropTarget } from "../actions/drop_target";
     const dispatch = createEventDispatcher();
 
     const tray = [...letters, ""];
+    let draggedIndex: number;
+    let draggedLetter: string;
 
-    function handleDropped(e, i) {
+    function handleRemove(detail) {
+        if (detail.origin === "tray") {
+            tray[detail.trayIndex] = "";
+        } else {
+            console.log("Wrong origin!", detail);
+        }
+    }
+
+    function handleDrop(e, i) {
         if (tray[i] === "") {
             tray[i] = e.detail.letter;
 
@@ -17,14 +28,13 @@
         }
     }
 
-    function handleRemove(detail) {
-        console.log(detail);
+    function handleDragEnter(event, i) {
+        draggedIndex = i;
+        draggedLetter = event.detail.letter;
+    }
 
-        if (detail.origin === "tray") {
-            tray[detail.trayIndex] = "";
-        } else {
-            console.log("Wrong origin!");
-        }
+    function handleDragLeave(event, i) {
+        draggedIndex = -1;
     }
 </script>
 
@@ -37,28 +47,39 @@
         padding: 0.5em;
         box-sizing: border-box;
         border-radius: 5px;
+        align-items: center;
+    }
+
+    .stretch {
+        align-self: stretch;
+    }
+
+    .no-pointer {
+        pointer-events: none;
     }
 </style>
 
 <div class="tray">
     {#each Array(8) as _, i}
         <div
-            class:drop-target={tray[i] === ''}
-            on:mydrop={(e) => {
-                console.log(e);
-                handleDropped(e, i);
-            }}
-            on:mydragenter={(e) => {
-                console.log(e);
-            }}
-            on:mydragleave={(e) => {
-                console.log(e);
-            }}>
+            data-droptarget={tray[i] === ''}
+            class:stretch={tray[i] === ''}
+            use:dropTarget={{ ondrop: (e) => {
+                    handleDrop(e, i);
+                }, ondragenter: (e) => {
+                    handleDragEnter(e, i);
+                }, ondragleave: (e) => {
+                    handleDragLeave(e, i);
+                } }}>
             {#if tray[i] !== ''}
                 <Tile
                     letter={tray[i]}
                     isDraggable={true}
                     dragData={{ letter: tray[i], origin: 'tray', trayIndex: i, notifier: handleRemove }} />
+            {:else if draggedIndex === i}
+                <div class="no-pointer">
+                    <Tile letter={draggedLetter} isDraggable={false} />
+                </div>
             {/if}
         </div>
     {/each}

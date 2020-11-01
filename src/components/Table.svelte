@@ -15,21 +15,6 @@
         height: 100%;
     }
 
-    :global(.dragged) {
-        cursor: grabbing;
-        z-index: 99;
-        pointer-events: none;
-        opacity: 50%;
-    }
-
-    :global(.draggable) {
-        cursor: grab;
-        z-index: 98;
-    }
-
-    :global(.drop-target) {
-    }
-
     .tray-container {
         display: grid;
         grid-template-columns: 12fr 3fr;
@@ -48,6 +33,7 @@
     <div class="tray-container">
         <Tray letters={tray} />
         <div class="buttons">
+            <button>Play</button>
             <button>Pass</button>
             <button>Exchange tiles</button>
         </div>

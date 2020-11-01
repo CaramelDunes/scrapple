@@ -21,6 +21,7 @@
         border: 1px solid black;
         border-radius: 5px;
         text-align: center;
+        user-select: none;
     }
 
     .tile:after {
@@ -35,12 +36,14 @@
         right: 0px;
         font-size: small;
         pointer-events: none;
+        user-select: none;
     }
 
     .tile > .center {
         position: absolute;
         font-weight: bold;
         pointer-events: none;
+        user-select: none;
     }
 
     .dragged {
