@@ -7,7 +7,13 @@
     import { dropTarget } from "../actions/drop_target";
     const dispatch = createEventDispatcher();
 
-    const tray = [...letters, ""];
+    let tray = [...letters, ""];
+
+    $: {
+        letters;
+        tray = [...letters, ""];
+    }
+
     let draggedIndex: number;
     let draggedLetter: string;
 

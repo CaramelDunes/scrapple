@@ -1,11 +1,31 @@
 import { Direction, Play } from "./play";
+import type { Word } from "./word";
 
 export class Board {
+    tiles: string[][];
 
-    b: string[][];
+    constructor(tiles: string[][]) {
+        this.tiles = tiles;
+    }
 
-    constructor(b: string[][]) {
-        this.b = b;
+    static empty(): Board {
+        const tiles = [];
+
+        for (let i = 0; i < 15; i++) {
+            tiles.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+        }
+
+        return new Board(tiles);
+    }
+
+    static fromPojo(pojo) {
+        return new Board(pojo.tiles);
+    }
+
+    toPojo() {
+        return {
+            tiles: this.tiles
+        };
     }
 
     isValidPlay(play: Play): boolean {
@@ -14,6 +34,38 @@ export class Board {
         } else {
             return play.y + play.letters.length <= 15;
         }
+    }
+
+    place(play: Play) {
+        if (play.direction === Direction.Horizontal) {
+            let i = 0;
+
+            for (let x = play.x; x < 15; x++) {
+                if (this.tiles[x][play.y] === '') {
+                    this.tiles[x][play.y] = play.letters[i];
+                    i++;
+
+                    if (i >= play.letters.length) break;
+                }
+            }
+        } else if (play.direction === Direction.Vertical) {
+            let i = 0;
+
+            for (let y = play.y; y < 15; y++) {
+                if (this.tiles[play.x][y] === '') {
+                    this.tiles[play.x][y] = play.letters[i];
+                    i++;
+
+                    if (i >= play.letters.length) break;
+                }
+            }
+        } else {
+            console.error("Unknown direction", play.direction);
+        }
+    }
+
+    wordsFromPlay(play: Play): Word[] {
+        return [];
     }
 
     static isTripleWord(x: number, y: number): boolean {
@@ -34,442 +86,3 @@ export class Board {
         return !Board.isDoubleWord(x, y) && (x == 1 || x == 5 || x == 9 || x == 13) && (y == 1 || y == 5 || y == 9 || y == 13);
     }
 }
-
-export const emptyBoard = [['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '',], ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '',], ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '',], ['', '', '', '', '', '', '', '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-[
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-],
-];
-
-export const worthlessBoard = [
-    [
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-        'A',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-    [
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-        'B',
-    ],
-];

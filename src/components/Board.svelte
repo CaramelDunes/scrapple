@@ -1,13 +1,17 @@
 <script lang="ts">
   import { dropTarget } from "../actions/drop_target";
 
-  import { Board, emptyBoard } from "../lib/board";
+  import { Board } from "../lib/board";
 
   import Tile from "./Tile.svelte";
 
-  export let board: string[][];
+  export let board: Board;
+  export let scratchBoard: Board = Board.empty();
 
-  let phantomBoard: string[][] = emptyBoard;
+  $: {
+    board;
+    scratchBoard = Board.empty();
+  }
 
   let dragValue: string = "";
   let dragX: number;
@@ -15,15 +19,15 @@
 
   function handleRemove(detail) {
     if (detail.origin === "board") {
-      phantomBoard[detail.originX][detail.originY] = "";
+      scratchBoard.tiles[detail.originX][detail.originY] = "";
     } else {
       console.log("Wrong origin!", detail);
     }
   }
 
   function handleDrop(event, x, y) {
-    if (phantomBoard[x][y] === "") {
-      phantomBoard[x][y] = event.detail.letter;
+    if (scratchBoard.tiles[x][y] === "") {
+      scratchBoard.tiles[x][y] = event.detail.letter;
       event.detail.notifier(event.detail);
     }
 
@@ -31,7 +35,7 @@
   }
 
   function handleDragEnter(event, x, y) {
-    if (board[x][y] === "" && phantomBoard[x][y] === "") {
+    if (board.tiles[x][y] === "" && scratchBoard.tiles[x][y] === "") {
       dragValue = event.detail.letter;
       dragX = x;
       dragY = y;
@@ -39,7 +43,7 @@
   }
 
   function handleDragLeave(event, x, y) {
-    if (board[x][y] === "" && phantomBoard[x][y] === "") {
+    if (board.tiles[x][y] === "" && scratchBoard.tiles[x][y] === "") {
       dragValue = "";
     }
   }
@@ -101,15 +105,15 @@
 
 <div class="container">
   <div class="grid">
-    {#each board as row, x}
-      {#each row as square, y}
+    {#each board.tiles as _, x}
+      {#each scratchBoard.tiles as _, y}
         <div
           class="square"
           class:triple-word={Board.isTripleWord(x, y)}
           class:double-word={Board.isDoubleWord(x, y)}
           class:double-letter={Board.isDoubleLetter(x, y)}
           class:triple-letter={Board.isTripleLetter(x, y)}
-          data-droptarget={square === ''}
+          data-droptarget={board.tiles[x][y] === ''}
           use:dropTarget={{ ondrop: (e) => {
               handleDrop(e, x, y);
             }, ondragenter: (e) => {
@@ -117,14 +121,14 @@
             }, ondragleave: (e) => {
               handleDragLeave(e, x, y);
             } }}>
-          {#if square !== ''}
-            <Tile letter={square} />
-          {:else if phantomBoard[x][y] !== ''}
+          {#if board.tiles[x][y] !== ''}
+            <Tile letter={board.tiles[x][y]} />
+          {:else if scratchBoard.tiles[x][y] !== ''}
             <div class="phantom">
               <Tile
-                letter={phantomBoard[x][y]}
+                letter={scratchBoard.tiles[x][y]}
                 isDraggable={true}
-                dragData={{ letter: phantomBoard[x][y], origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
+                dragData={{ letter: scratchBoard.tiles[x][y], origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
             </div>
           {:else if dragX == x && dragY == y && dragValue !== ''}
             <div class="phantom no-pointer">

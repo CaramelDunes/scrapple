@@ -1,9 +1,6 @@
-export enum Direction {
-    Horizontal,
-    Vertical
-}
+import type { Direction } from "./play";
 
-export class Play {
+export class Word {
     x: number;
     y: number;
     direction: Direction;
@@ -16,8 +13,8 @@ export class Play {
         this.letters = letters;
     }
 
-    static fromPojo(pojo): Play {
-        return new Play(pojo.x, pojo.y, pojo.direction, pojo.letters);
+    static fromPojo(pojo): Word {
+        return new Word(pojo.x, pojo.y, pojo.direction, pojo.letters);
     }
 
     toPojo() {

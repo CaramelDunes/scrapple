@@ -2,11 +2,12 @@
     import Board from "./Board.svelte";
     import Tray from "./Tray.svelte";
 
-    import type { Game } from "../lib/game";
+    import type { PublicGame } from "../lib/public_game";
+    import type { Board as libBoard } from "../lib/board";
 
-    export let game: Game;
-
-    let tray = ["A", "B", "C", "D", "E", "F", "G"];
+    export let game: PublicGame;
+    export let tray: string[];
+    export let scratchBoard: libBoard;
 </script>
 
 <style>
@@ -20,22 +21,13 @@
         grid-template-columns: 12fr 3fr;
         margin-top: 1rem;
     }
-
-    .buttons {
-        display: flex;
-        flex-direction: column;
-    }
 </style>
 
 <div class="board">
-    <Board board={game.board.b} />
+    <Board board={game.board} bind:scratchBoard />
 
     <div class="tray-container">
         <Tray letters={tray} />
-        <div class="buttons">
-            <button>Play</button>
-            <button>Pass</button>
-            <button>Exchange tiles</button>
-        </div>
+        <slot name="controls" />
     </div>
 </div>
