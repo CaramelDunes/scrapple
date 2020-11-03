@@ -23,6 +23,8 @@ let dropTarget = null;
 function draggable(node, params) {
     if (!params.isDraggable) return {};
 
+    console.log(params);
+
     node.addEventListener('touchstart', handleMousedown);
     node.addEventListener('mousedown', handleMousedown);
 
@@ -85,12 +87,12 @@ function draggable(node, params) {
             if (oldDropTarget !== dropTarget) {
                 if (oldDropTarget)
                     oldDropTarget.dispatchEvent(new CustomEvent('mydragleave', {
-                        detail: params.data
+                        detail: Object.assign(params.data, { dataset: node.dataset })
                     }));
 
                 if (dropTarget)
                     dropTarget.dispatchEvent(new CustomEvent('mydragenter', {
-                        detail: params.data
+                        detail: Object.assign(params.data, { dataset: node.dataset })
                     }));
             }
 
@@ -108,11 +110,13 @@ function draggable(node, params) {
 
             if (dropTarget) {
                 dropTarget.dispatchEvent(new CustomEvent('mydragleave', {
-                    detail: params.data
+                    detail: params.data,
+                    dataset: node.dataset
                 }));
 
                 dropTarget.dispatchEvent(new CustomEvent('mydrop', {
-                    detail: params.data
+                    detail: params.data,
+                    dataset: node.dataset
                 }));
             }
 

@@ -1,4 +1,4 @@
-import { Language } from "./dictionary";
+import { Language } from "./language";
 
 const pointsPerLetter = new Map<Language, Map<string, number>>();
 

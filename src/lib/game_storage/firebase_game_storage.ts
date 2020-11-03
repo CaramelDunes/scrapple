@@ -18,6 +18,6 @@ export class FirebaseGameStorage extends GameStorage {
 
     async set(gameId: string, game: Game) {
         const gameRef = database.ref(`game/${gameId}`);
-        await gameRef.set(game);
+        await gameRef.set(game.toPojo());
     }
 }

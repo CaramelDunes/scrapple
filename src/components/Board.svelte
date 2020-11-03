@@ -65,6 +65,7 @@
     display: grid;
     grid-template-columns: repeat(15, 1fr);
     grid-template-rows: repeat(15, 1fr);
+    grid-auto-flow: column;
     width: 100%;
     height: 100%;
     background-color: white;

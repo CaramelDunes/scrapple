@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Language } from "../lib/dictionary";
+    import { Language } from "../lib/language";
 
     import { pointsForLetter } from "../lib/points";
     import { draggable } from "../actions/draggable";
@@ -61,7 +61,8 @@
     }}
     on:mydragend={(e) => {
         draggedIntoThis = false;
-    }}>
+    }}
+    data-letter={letter}>
     <div class="center">{letter}</div>
     <div class="corner">{pointsForLetter(Language.French, letter)}</div>
 </div>

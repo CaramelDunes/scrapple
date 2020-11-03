@@ -7,7 +7,8 @@
 
         return {
             gameId: page.params.id,
-            game: game.game,
+            rawGame: game.game,
+            tray: game.tray,
         };
     }
 </script>
@@ -24,14 +25,16 @@
     import type { Board as libBoard } from "../../lib/board";
     import { PublicGame } from "../../lib/public_game";
     import { playFromScratchBoard } from "../../lib/client/board";
+    import type { Word } from "../../lib/word";
 
     export let gameId: string;
-    export let game: PublicGame;
+    export let rawGame;
+    export let tray: string[];
+
+    let game = PublicGame.fromPojo(rawGame);
 
     let channel;
     let scratchBoard: libBoard;
-
-    let tray = ["A", "B", "C", "D", "E", "F", "G"];
 
     let fakeStory = [
         "Player 1 played DOLMEN for 45 points.",
@@ -50,7 +53,7 @@
 
         channel.bind("board", function (data) {
             console.log("From Pusher", data.message);
-            game = data.message;
+            game = PublicGame.fromPojo(data.message);
         });
     });
 
@@ -115,10 +118,16 @@
     }
 
     let playTooltip = "";
-    let currentPlay;
+    let currentPlay = null;
+    let currentWords: Word[] = [];
 
     $: if (scratchBoard) {
         currentPlay = playFromScratchBoard(game.board, scratchBoard)[0];
+        currentWords = [];
+
+        if (currentPlay) {
+            currentWords = game.board.wordsFromPlay(currentPlay);
+        }
     }
 </script>
 
@@ -157,9 +166,11 @@
         <div class="controls" slot="controls">
             <button
                 on:click={play}
-                disabled={!currentPlay}
+                disabled={currentWords.length === 0}
                 title={playTooltip}>Play
-                {currentPlay ? currentPlay.letters.join('') : ''}</button>
+                {currentWords
+                    .map((w) => w.letters.join('') + ` (${w.points})`)
+                    .join(', ')}</button>
             <button>Pass</button>
             <button>Exchange tiles</button>
             <div>There are {game.bagSize} tiles in the bag.</div>

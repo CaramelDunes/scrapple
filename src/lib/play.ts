@@ -17,10 +17,19 @@ export class Play {
     }
 
     static fromPojo(pojo): Play {
-        return new Play(pojo.x, pojo.y, pojo.direction, pojo.letters);
+        if (Play.isValidPosition(pojo.x, pojo.y)
+            && pojo.letters.length <= 7
+            && ((pojo.direction === Direction.Horizontal && pojo.x + pojo.letters.length < 15)
+                || (pojo.direction === Direction.Vertical && pojo.y + pojo.letters.length < 15))) {
+            return new Play(pojo.x, pojo.y, pojo.direction, pojo.letters);
+        }
     }
 
     toPojo() {
         return this;
+    }
+
+    static isValidPosition(x: number, y: number): boolean {
+        return x >= 0 && x < 15 && y >= 0 && y < 15;
     }
 }

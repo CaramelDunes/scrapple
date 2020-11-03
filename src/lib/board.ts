@@ -1,5 +1,7 @@
+import { Language } from "./language";
 import { Direction, Play } from "./play";
-import type { Word } from "./word";
+import { pointsForLetter } from "./points";
+import { Word } from "./word";
 
 export class Board {
     tiles: string[][];
@@ -19,7 +21,7 @@ export class Board {
     }
 
     static fromPojo(pojo) {
-        return new Board(pojo.tiles);
+        return new Board(pojo.tiles ?? []);
     }
 
     toPojo() {
@@ -29,11 +31,26 @@ export class Board {
     }
 
     isValidPlay(play: Play): boolean {
+        let i = 0;
+
         if (play.direction === Direction.Horizontal) {
-            return play.x + play.letters.length <= 15;
-        } else {
-            return play.y + play.letters.length <= 15;
+            for (let x = play.x; x < 15; x++) {
+                if (this.tiles[x][play.y] === '') {
+                    i++;
+                    if (i === play.letters.length) break;
+                }
+            }
+        } else if (play.direction === Direction.Vertical) {
+            for (let y = play.y; y < 15; y++) {
+                if (this.tiles[play.x][y] === '') {
+                    i++;
+                    if (i === play.letters.length) break;
+                }
+            }
+
         }
+
+        return i === play.letters.length;
     }
 
     place(play: Play) {
@@ -64,8 +81,173 @@ export class Board {
         }
     }
 
+    private findCrossWord(x, y, direction, letter): Word {
+        let start;
+        let points = 0;
+        let multiplier = 1;
+        let word = [];
+
+        if (direction === Direction.Horizontal) {
+            start = x;
+
+            while (start >= 1 && this.tiles[start - 1][y] !== '') {
+                word.unshift(this.tiles[start - 1][y]);
+                points += pointsForLetter(Language.French, this.tiles[start - 1][y]);
+                start--;
+            }
+
+            word.push(letter);
+            points += pointsForLetter(Language.French, letter) * Board.squareLetterMultiplier(x, y);
+            multiplier *= Board.squareWordMultiplier(x, y);
+
+            let end = x;
+
+            while (end <= 13 && this.tiles[end + 1][y] !== '') {
+                word.push(this.tiles[end + 1][y]);
+                points += pointsForLetter(Language.French, this.tiles[start - 1][y]);
+                end++;
+            }
+
+            if (word.length > 1) {
+                return new Word(start, y, direction, word, points * multiplier);
+            }
+        } else if (direction === Direction.Vertical) {
+            start = y;
+
+            while (start >= 1 && this.tiles[x][start - 1] !== '') {
+                word.unshift(this.tiles[x][start - 1]);
+                points += pointsForLetter(Language.French, this.tiles[x][start - 1]);
+
+                start--;
+            }
+
+            word.push(letter);
+            points += pointsForLetter(Language.French, letter) * Board.squareLetterMultiplier(x, y);
+            multiplier *= Board.squareWordMultiplier(x, y);
+
+            let end = y;
+
+            while (end <= 13 && this.tiles[x][end + 1] !== '') {
+                word.push(this.tiles[x][end + 1]);
+                points += pointsForLetter(Language.French, this.tiles[x][end + 1]);
+                end++;
+            }
+
+            if (word.length > 1) {
+                return new Word(x, start, direction, word, points * multiplier);
+            }
+        }
+
+        return null;
+    }
+
     wordsFromPlay(play: Play): Word[] {
-        return [];
+        console.log(play);
+
+        const words = [];
+        let i = 0;
+        let points = 0;
+        let multiplier = 1;
+
+        if (play.direction === Direction.Horizontal) {
+            let start = play.x;
+            let word = [];
+
+            while (start >= 1 && this.tiles[start - 1][play.y] !== '') {
+                word.unshift(this.tiles[start - 1][play.y]);
+                points += pointsForLetter(Language.French, this.tiles[start - 1][play.y]);
+                start--;
+            }
+
+            word.push(play.letters[i]);
+            points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
+            multiplier *= Board.squareWordMultiplier(play.x, play.y);
+            i++;
+
+            let end = play.x;
+
+            while (end <= 13) {
+                if (this.tiles[end + 1][play.y] !== '') {
+                    word.push(this.tiles[end + 1][play.y]);
+                    points += pointsForLetter(Language.French, this.tiles[end + 1][play.y]);
+                } else {
+                    if (i >= play.letters.length) break;
+
+                    word.push(play.letters[i]);
+                    points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(end + 1, play.y);
+                    multiplier *= Board.squareWordMultiplier(end + 1, play.y);
+                    i++;
+                }
+
+                end++;
+            }
+
+            if (word.length > 1) {
+                words.push(new Word(start, play.y, play.direction, word, points * multiplier));
+            }
+
+            i = 0;
+            for (let x = play.x; x < 15; x++) {
+                if (this.tiles[x][play.y] === '') {
+                    const word = this.findCrossWord(x, play.y, Direction.Vertical, play.letters[i]);
+                    if (word) words.push(word);
+
+                    i++;
+
+                    if (i >= play.letters.length) break;
+                }
+            }
+        } else if (play.direction === Direction.Vertical) {
+            let start = play.y;
+            let word = [];
+
+            while (start >= 1 && this.tiles[play.x][start - 1] !== '') {
+                word.unshift(this.tiles[play.x][start - 1]);
+                points += pointsForLetter(Language.French, this.tiles[play.x][start - 1]);
+                start--;
+            }
+
+            word.push(play.letters[i]);
+            points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
+            multiplier *= Board.squareWordMultiplier(play.x, play.y);
+            i++;
+
+            let end = play.y;
+
+            while (end <= 13) {
+                if (this.tiles[play.x][end + 1] !== '') {
+                    word.push(this.tiles[play.x][end + 1]);
+                    points += pointsForLetter(Language.French, this.tiles[play.x][end + 1]);
+                } else {
+                    if (i >= play.letters.length) break;
+
+                    word.push(play.letters[i]);
+                    points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, end + 1);
+                    multiplier *= Board.squareWordMultiplier(play.x, end + 1);
+                    i++;
+                }
+
+                end++;
+            }
+
+            if (word.length > 1) {
+                words.push(new Word(play.x, start, play.direction, word, points * multiplier));
+            }
+
+            i = 0;
+            for (let y = play.y; y < 15; y++) {
+                if (this.tiles[play.x][y] === '') {
+                    const word = this.findCrossWord(play.x, y, Direction.Horizontal, play.letters[i]);
+                    if (word) words.push(word);
+
+                    i++;
+
+                    if (i >= play.letters.length) break;
+                }
+            }
+        }
+
+        return words;
     }
 
     static isTripleWord(x: number, y: number): boolean {
@@ -84,5 +266,17 @@ export class Board {
 
     static isTripleLetter(x: number, y: number): boolean {
         return !Board.isDoubleWord(x, y) && (x == 1 || x == 5 || x == 9 || x == 13) && (y == 1 || y == 5 || y == 9 || y == 13);
+    }
+
+    static squareLetterMultiplier(x: number, y: number): number {
+        if (this.isDoubleLetter(x, y)) return 2;
+        else if (this.isTripleLetter(x, y)) return 3;
+        else return 1;
+    }
+
+    static squareWordMultiplier(x: number, y: number): number {
+        if (this.isDoubleWord(x, y)) return 2;
+        else if (this.isTripleWord(x, y)) return 3;
+        else return 1;
     }
 }

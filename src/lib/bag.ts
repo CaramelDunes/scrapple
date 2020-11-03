@@ -1,4 +1,4 @@
-import { Language } from './dictionary';
+import { Language } from './language';
 
 const initialContents = new Map<Language, Map<string, number>>();
 
@@ -57,6 +57,11 @@ export class Bag {
 
     draw(count: number): string[] {
         return this.contents.splice(0, Math.min(count, this.contents.length));
+    }
+
+    exchange(tiles: string[]): string[] {
+        this.contents.push(...tiles);
+        return this.draw(tiles.length);
     }
 }
 
