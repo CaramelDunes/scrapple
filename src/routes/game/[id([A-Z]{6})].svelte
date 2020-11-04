@@ -1,11 +1,17 @@
 <script context="module" lang="ts">
     export async function preload(page, session) {
-        const res = await this.fetch(`game.json?id=${page.params.id}`);
+        const [playerId, playerKey] = session.cookies[page.params.id].split(
+            ":"
+        );
+
+        const res = await this.fetch(
+            `game.json?id=${page.params.id}&playerId=${playerId}&playerKey=${playerKey}`
+        );
         const game = await res.json();
 
-        console.log(page);
-
         return {
+            playerId: playerId,
+            playerKey: playerKey,
             gameId: page.params.id,
             rawGame: game.game,
             tray: game.tray,
@@ -22,11 +28,11 @@
     } from "../../lib/client/pusher";
 
     import { onMount } from "svelte";
-    import type { Board as libBoard } from "../../lib/board";
     import { PublicGame } from "../../lib/public_game";
-    import { playFromScratchBoard } from "../../lib/client/board";
     import type { Word } from "../../lib/word";
 
+    export let playerId: string;
+    export let playerKey: string;
     export let gameId: string;
     export let rawGame;
     export let tray: string[];
@@ -34,13 +40,6 @@
     let game = PublicGame.fromPojo(rawGame);
 
     let channel;
-    let scratchBoard: libBoard;
-
-    let fakeStory = [
-        "Player 1 played DOLMEN for 45 points.",
-        "Player 2 played AGE for 2 points.",
-        "Player 1 played DESOXYRIBPNUCL for 45 points.",
-    ];
 
     onMount(() => {
         Pusher.logToConsole = true;
@@ -65,19 +64,29 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                gameId: "AAAAAA",
-                playerId: 0,
+                gameId: gameId,
+                playerId: playerId,
+                playerKey: playerKey,
                 play: currentPlay,
             }),
         });
 
-        const pojo = await response.json();
-        console.log("From Play", pojo);
-        game = PublicGame.fromPojo(pojo.game);
-        tray = pojo.tray;
+        console.log(currentPlay);
+
+        if (response.ok) {
+            const pojo = await response.json();
+
+            if (pojo.success) {
+                console.log("From Play", pojo);
+                game = PublicGame.fromPojo(pojo.game);
+                tray = pojo.tray;
+            }
+        } else {
+            console.log("Not ok");
+        }
     }
 
-    async function exchangeTiles() {
+    async function exchangeTiles(tiles: string[]) {
         const response = await fetch(`/game.json`, {
             method: "PUT",
             cache: "no-cache",
@@ -85,9 +94,11 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                gameId: "AAAAAA",
-                playerId: 0,
-                play: currentPlay,
+                gameId: gameId,
+                playerId: playerId,
+                playerKey: playerKey,
+                exchange: true,
+                exchangedTiles: tiles,
             }),
         });
 
@@ -105,14 +116,15 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                gameId: "AAAAAA",
-                playerId: 0,
-                play: currentPlay,
+                gameId: gameId,
+                playerId: playerId,
+                playerKey: playerKey,
+                pass: true,
             }),
         });
 
         const pojo = await response.json();
-        console.log("From Play", pojo);
+        console.log("From Pass", pojo);
         game = PublicGame.fromPojo(pojo.game);
         tray = pojo.tray;
     }
@@ -121,11 +133,10 @@
     let currentPlay = null;
     let currentWords: Word[] = [];
 
-    $: if (scratchBoard) {
-        currentPlay = playFromScratchBoard(game.board, scratchBoard)[0];
+    $: {
         currentWords = [];
 
-        if (currentPlay) {
+        if (currentPlay && game.board.isValidPlay(currentPlay)) {
             currentWords = game.board.wordsFromPlay(currentPlay);
         }
     }
@@ -138,7 +149,7 @@
         background-color: #f4f4f4;
         height: 100%;
         width: 100%;
-        min-width: 500px;
+        min-width: 800px;
         margin: 0 auto;
         border: 1px solid black;
         padding: 5px;
@@ -152,7 +163,9 @@
     .history {
         background-color: white;
         overflow: auto;
-        width: 250px;
+        /* width: 250px; */
+        display: flex;
+        flex-direction: column;
     }
 </style>
 
@@ -161,25 +174,45 @@
 </svelte:head>
 
 <div class="wrapper">
-    <div class="history">Bla</div>
-    <Table {game} {tray} bind:scratchBoard>
-        <div class="controls" slot="controls">
+    <div class="history">
+        <div>Turn of {game.playerTurn + 1}</div>
+        <div>Score of Player 1: {game.scores[0]}</div>
+        <div>Score of Player 2: {game.scores[1]}</div>
+        <div>There are {game.bagSize} tiles in the bag.</div>
+        <div style="flex:1;" />
+        <div class="controls">
             <button
                 on:click={play}
-                disabled={currentWords.length === 0}
+                disabled={game.playerTurn !== parseInt(playerId) || currentWords.length === 0}
                 title={playTooltip}>Play
                 {currentWords
                     .map((w) => w.letters.join('') + ` (${w.points})`)
                     .join(', ')}</button>
-            <button>Pass</button>
-            <button>Exchange tiles</button>
-            <div>There are {game.bagSize} tiles in the bag.</div>
+            <button
+                on:click={pass}
+                disabled={game.playerTurn !== parseInt(playerId)}
+                title="Pass and score 0">Pass</button>
+            <button
+                disabled={game.playerTurn !== parseInt(playerId)}
+                title="Exchange one or more tiles and score 0">Exchange tiles</button>
         </div>
-    </Table>
+    </div>
+    <Table {game} {tray} bind:play={currentPlay} />
     <div class="history">
         <ol>
-            {#each fakeStory as item}
-                <li>{item}</li>
+            {#each game.history as item}
+                {#if item.passed}
+                    <li>Passed.</li>
+                {:else if item.exchangedTiles > 0}
+                    <li>Exchanged {item.exchangedTiles} tiles.</li>
+                {:else}
+                    <li>
+                        Played
+                        {item.words
+                            .map((w) => w.letters.join('') + ` (${w.points})`)
+                            .join(', ')}
+                    </li>
+                {/if}
             {/each}
         </ol>
     </div>

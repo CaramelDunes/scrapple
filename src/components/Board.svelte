@@ -2,15 +2,34 @@
   import { dropTarget } from "../actions/drop_target";
 
   import { Board } from "../lib/board";
+  import { playFromScratchBoard } from "../lib/client/board";
+  import { Play } from "../lib/play";
 
   import Tile from "./Tile.svelte";
 
   export let board: Board;
-  export let scratchBoard: Board = Board.empty();
+  export let play: Play;
 
-  $: {
-    board;
-    scratchBoard = Board.empty();
+  let scratchBoard: Board = Board.empty();
+
+  $: scratchBoard = mergeBoard(board);
+  $: play = playFromScratchBoard(board, scratchBoard)[0];
+
+  function mergeBoard(referenceBoard: Board) {
+    return Board.empty();
+
+    for (let x = 0; x < 15; x++) {
+      for (let y = 0; y < 15; y++) {
+        if (
+          scratchBoard.tiles[x][y] !== "" &&
+          referenceBoard.tiles[x][y] !== ""
+        ) {
+          return Board.empty();
+        }
+      }
+    }
+
+    return scratchBoard;
   }
 
   let dragValue: string = "";
@@ -27,7 +46,23 @@
 
   function handleDrop(event, x, y) {
     if (scratchBoard.tiles[x][y] === "") {
-      scratchBoard.tiles[x][y] = event.detail.letter;
+      let value = event.detail.dataset.letter;
+
+      if (value === " ") {
+        const replaced = prompt(
+          "What letter should be that blank?"
+        ).toLowerCase();
+
+        console.log(Play.isBlankTile(replaced));
+        if (!Play.isBlankTile(replaced)) {
+          dragValue = "";
+          return;
+        }
+
+        value = replaced;
+      }
+
+      scratchBoard.tiles[x][y] = value;
       event.detail.notifier(event.detail);
     }
 
@@ -36,7 +71,7 @@
 
   function handleDragEnter(event, x, y) {
     if (board.tiles[x][y] === "" && scratchBoard.tiles[x][y] === "") {
-      dragValue = event.detail.letter;
+      dragValue = event.detail.dataset.letter;
       dragX = x;
       dragY = y;
     }
@@ -53,6 +88,7 @@
   .container {
     position: relative;
     width: 100%;
+    min-width: 600px;
   }
   .container:after {
     content: "";
@@ -72,7 +108,7 @@
   }
 
   .square {
-    padding: 3px;
+    padding: 2px;
     border-radius: 5px;
     user-select: none;
   }
@@ -129,7 +165,7 @@
               <Tile
                 letter={scratchBoard.tiles[x][y]}
                 isDraggable={true}
-                dragData={{ letter: scratchBoard.tiles[x][y], origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
+                dragData={{ origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
             </div>
           {:else if dragX == x && dragY == y && dragValue !== ''}
             <div class="phantom no-pointer">

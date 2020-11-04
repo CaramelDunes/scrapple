@@ -1,69 +1,94 @@
-import { isValidPlayerKey } from "../lib/authentication";
+import { generateCookie, generatePlayerKey, isValidPlayerKey } from "../lib/authentication";
 import { Board } from "../lib/board";
-import { Language } from "../lib/language";
+import { isValidLanguage, Language } from "../lib/language";
 import { ErrorWithCode } from "../lib/error_with_code";
 import { Game } from "../lib/game";
 import { TheGameStorage } from "../lib/game_storage/the_game_storage";
 import { Play } from "../lib/play";
-import { PublicGame } from "../lib/public_game";
 
 import { pusher } from '../lib/server/pusher';
-import { dictionaries } from "../lib/dictionary";
 
-export async function get(req, res) {
+export async function get(req, res, next) {
     const gameId = req.query.id;
-    console.log(gameId);
+    const playerId = req.query.playerId ?? '';
+    const playerKey = req.query.playerKey ?? '';
 
-    await TheGameStorage.set('AAAAAA', Game.new(Language.French));
     const game: Game = await TheGameStorage.get(gameId);
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: game.trays[game.playerTurn] }));
+    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: isValidPlayerKey(gameId, playerId, playerKey) ? game.trays[playerId] : null }));
 }
 
-export async function post(req, res) {
-    const gameId = Game.randomId();
-    await TheGameStorage.set(gameId, Game.new(Language.French));
+export async function post(req, res, next) {
+    const language = req.body.language;
 
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(req.body));
+    if (!isValidLanguage(language)) {
+        next(new ErrorWithCode('Invalid language.', 400));
+        return;
+    }
+
+    const gameId = Game.randomId();
+    await TheGameStorage.set(gameId, Game.new(language));
+
+    res.setHeader('Set-Cookie', generateCookie(gameId, 0));
+    res.setHeader('Location', `/game/${gameId}`);
+    res.statusCode = 302;
+    res.end();
 }
 
 export async function put(req, res, next) {
     const gameId = req.body.gameId;
 
-    const playerId = req.body.playerId;
-    const playerKey = req.body.key;
+    const playerId = parseInt(req.body.playerId);
+    const playerKey = req.body.playerKey;
 
-    // TODO: Check user can play.
-    if (false && !isValidPlayerKey(gameId, playerId, playerKey)) {
+    if (!isValidPlayerKey(gameId, playerId, playerKey)) {
         next(new ErrorWithCode('Unauthorized', 403));
         return;
     }
 
-    const play = Play.fromPojo(req.body.play);
     const game: Game = await TheGameStorage.get(gameId);
+    let success = false;
 
-    console.log('Valid:', game.isValidPlay(playerId, play));
+    if (req.body.pass === true) {
 
-    const words = game.board.wordsFromPlay(play);
+        if (game.isValidPass(playerId)) {
+            game.pass();
+            success = true;
+        }
+    } else if (req.body.exchange === true) {
+        if (game.isValidExchange(playerId, req.body.exchangedTiles)) {
+            game.exchange(req.body.exchangedTiles);
+            success = true;
+        }
+    } else {
+        const play = Play.fromPojo(req.body.play);
 
-    for (let w of words) {
-        console.log(w.letters.join('') + ` (${w.points})`, dictionaries.get(Language.French).has(w.letters.join('')));
+        if (!play) {
+            next(new ErrorWithCode('Invalid play', 400));
+            return;
+        }
+
+        if (game.isValidPlay(game.playerTurn, play)) {
+            game.play(play);
+            success = true;
+        }
     }
 
-    const newGame = game.play(play);
     const publicGame = game.toPublicGame().toPojo();
 
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({
+        success: success,
         game: publicGame,
         tray: game.trays[playerId]
     }));
 
-    pusher.trigger(gameId, 'board', {
-        message: publicGame
-    });
+    if (success) {
+        pusher.trigger(gameId, 'board', {
+            message: publicGame
+        });
+    }
 
-    await TheGameStorage.set('AAAAAA', game);
+    await TheGameStorage.set(gameId, game);
 }

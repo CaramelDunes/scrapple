@@ -3,9 +3,9 @@ import { Board } from "./board";
 import { dictionaries, Dictionary } from "./dictionary";
 import { HistoryItem } from "./history_item";
 import type { Language } from "./language";
-import type { Play } from "./play";
+import { Play } from "./play";
 import { PublicGame } from "./public_game";
-import type { Word } from "./word";
+import { Word } from "./word";
 
 export class Game {
     language: Language;
@@ -15,8 +15,9 @@ export class Game {
     bag: Bag;
     trays: string[][];
     history: HistoryItem[];
+    opponentJoined: boolean;
 
-    constructor(language: Language, board: Board, playerTurn: number, scores: number[], bag: Bag, trays: string[][], history: HistoryItem[]) {
+    constructor(language: Language, board: Board, playerTurn: number, scores: number[], bag: Bag, trays: string[][], history: HistoryItem[], opponentJoined: boolean) {
         this.language = language;
         this.board = board;
         this.playerTurn = playerTurn;
@@ -24,15 +25,16 @@ export class Game {
         this.bag = bag;
         this.trays = trays;
         this.history = history;
+        this.opponentJoined = opponentJoined;
     }
 
     static new(language: Language): Game {
         const bag = Bag.full(language);
-        return new Game(language, Board.empty(), Math.round(Math.random()), [0, 0], bag, [bag.draw(7), bag.draw(7)], []);
+        return new Game(language, Board.empty(), Math.round(Math.random()), [0, 0], bag, [bag.draw(7), bag.draw(7)], [], false);
     }
 
     static fromPojo(pojo): Game {
-        return new Game(pojo.language, Board.fromPojo(pojo.board), pojo.playerTurn, pojo.scores, Bag.fromPojo(pojo.bag), pojo.trays, (pojo.history ?? []).map((item) => HistoryItem.fromPojo(item)));
+        return new Game(pojo.language, Board.fromPojo(pojo.board), pojo.playerTurn, pojo.scores, Bag.fromPojo(pojo.bag), pojo.trays, (pojo.history ?? []).map((item) => HistoryItem.fromPojo(item)), pojo.opponentJoined);
     }
 
     toPojo() {
@@ -43,7 +45,8 @@ export class Game {
             scores: this.scores,
             bag: this.bag.toPojo(),
             trays: this.trays,
-            history: this.history.map((item) => item.toPojo())
+            history: this.history.map((item) => item.toPojo()),
+            opponentJoined: this.opponentJoined
         };
     }
 
@@ -55,8 +58,8 @@ export class Game {
         if (this.playerTurn === playerId && this.trayContains(playerId, play.letters) && this.board.isValidPlay(play)) {
             const words = this.board.wordsFromPlay(play);
 
-            for (const word in words) {
-                if (!dictionaries.get(this.language).has(word)) return false;
+            for (const word of words) {
+                if (!dictionaries.get(this.language).has(word.letters.join('').toUpperCase())) return false;
             }
 
             return true;
@@ -69,6 +72,10 @@ export class Game {
         return this.playerTurn === playerId && this.trayContains(playerId, tiles) && this.bag.contents.length >= tiles.length;
     }
 
+    isValidPass(playerId: number): boolean {
+        return this.playerTurn === playerId;
+    }
+
     play(play: Play) {
         const words = this.board.wordsFromPlay(play);
         let score = words.map((word) => word.points).reduce((a, b) => a + b, 0);
@@ -77,9 +84,11 @@ export class Game {
             score += 50;
         }
 
+        this.scores[this.playerTurn] += score;
+
         this.board.place(play);
 
-        Game.removeAllFromList(this.trays[this.playerTurn], play.letters);
+        Game.removeAllFromTray(this.trays[this.playerTurn], play.letters);
         this.trays[this.playerTurn].push(...this.bag.draw(7 - this.trays[this.playerTurn].length));
 
         this.playerTurn ^= 1;
@@ -92,7 +101,7 @@ export class Game {
     }
 
     exchange(tiles: string[]) {
-        Game.removeAllFromList(this.trays[this.playerTurn], tiles);
+        Game.removeAllFromTray(this.trays[this.playerTurn], tiles);
         this.trays[this.playerTurn].push(...this.bag.exchange(tiles));
 
         this.playerTurn ^= 1;
@@ -103,7 +112,7 @@ export class Game {
         if (tiles.length > this.trays[playerId].length) return false;
 
         const copy = [...this.trays[playerId]];
-        return Game.removeAllFromList(copy, tiles);
+        return Game.removeAllFromTray(copy, tiles);
     }
 
     private static removeFromList(list, element): boolean {
@@ -116,9 +125,9 @@ export class Game {
         return false;
     }
 
-    private static removeAllFromList(list, elements): boolean {
-        for (const element of elements) {
-            if (!Game.removeFromList(list, element)) return false;
+    private static removeAllFromTray(tray, letters): boolean {
+        for (const element of letters) {
+            if (!Game.removeFromList(tray, Play.isBlankTile(element) ? ' ' : element)) return false;
         }
 
         return true;

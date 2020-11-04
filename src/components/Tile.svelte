@@ -3,10 +3,11 @@
 
     import { pointsForLetter } from "../lib/points";
     import { draggable } from "../actions/draggable";
+    import { Play } from "../lib/play";
 
     export let letter: string;
     export let isDraggable: boolean = false;
-    export let dragData;
+    export let dragData = null;
 
     let draggedIntoThis = false;
 </script>
@@ -16,12 +17,11 @@
         box-sizing: border-box;
         position: relative;
         width: 100%;
-        /* height: 100%; */
         background-color: burlywood;
-        border: 1px solid black;
         border-radius: 5px;
         text-align: center;
         user-select: none;
+        font-size: 100vw;
     }
 
     .tile:after {
@@ -30,25 +30,37 @@
         padding-bottom: 100%;
     }
 
-    .tile > .corner {
-        position: absolute;
-        top: 0px;
-        right: 0px;
+    .inner > .corner {
         font-size: small;
         pointer-events: none;
         user-select: none;
+        align-self: flex-start;
+        line-height: 0.75em;
     }
 
-    .tile > .center {
-        position: absolute;
+    .inner > .center {
+        font-size: large;
         font-weight: bold;
         pointer-events: none;
         user-select: none;
+        align-self: center;
+        flex-grow: 1;
     }
 
     .dragged {
         pointer-events: none;
         opacity: 75%;
+    }
+
+    .inner {
+        box-sizing: border-box;
+
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        padding: 5px;
     }
 </style>
 
@@ -63,6 +75,10 @@
         draggedIntoThis = false;
     }}
     data-letter={letter}>
-    <div class="center">{letter}</div>
-    <div class="corner">{pointsForLetter(Language.French, letter)}</div>
+    <div class="inner">
+        <div class="center">
+            {Play.isBlankTile(letter) ? letter.toUpperCase() + '*' : letter}
+        </div>
+        <div class="corner">{pointsForLetter(Language.French, letter)}</div>
+    </div>
 </div>

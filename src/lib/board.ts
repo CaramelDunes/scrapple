@@ -30,12 +30,30 @@ export class Board {
         };
     }
 
+    isEmpty(): boolean {
+        for (let x = 0; x < 15; x++) {
+            for (let y = 0; y < 15; y++) {
+                if (this.tiles[x][y] !== '') {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     isValidPlay(play: Play): boolean {
+        let connected = false;
         let i = 0;
 
         if (play.direction === Direction.Horizontal) {
             for (let x = play.x; x < 15; x++) {
                 if (this.tiles[x][play.y] === '') {
+                    connected ||= x < 14 && this.tiles[x + 1][play.y] !== '';
+                    connected ||= x > 0 && this.tiles[x - 1][play.y] !== '';
+                    connected ||= play.y < 14 && this.tiles[x][play.y + 1] !== '';
+                    connected ||= play.y > 0 && this.tiles[x][play.y - 1] !== '';
+
                     i++;
                     if (i === play.letters.length) break;
                 }
@@ -43,14 +61,24 @@ export class Board {
         } else if (play.direction === Direction.Vertical) {
             for (let y = play.y; y < 15; y++) {
                 if (this.tiles[play.x][y] === '') {
+                    connected ||= play.x < 14 && this.tiles[play.x + 1][y] !== '';
+                    connected ||= play.x > 0 && this.tiles[play.x - 1][y] !== '';
+                    connected ||= y < 14 && this.tiles[play.x][y + 1] !== '';
+                    connected ||= y > 0 && this.tiles[play.x][y - 1] !== '';
+
                     i++;
                     if (i === play.letters.length) break;
                 }
             }
-
         }
 
-        return i === play.letters.length;
+        const middle = connected
+            || (play.direction === Direction.Horizontal && play.y === 7 && play.x <= 7 && play.x + play.letters.length > 7)
+            || (play.direction === Direction.Vertical && play.x === 7 && play.y <= 7 && play.y + play.letters.length > 7);
+
+        console.log(middle);
+
+        return middle && i === play.letters.length;
     }
 
     place(play: Play) {
@@ -104,7 +132,7 @@ export class Board {
 
             while (end <= 13 && this.tiles[end + 1][y] !== '') {
                 word.push(this.tiles[end + 1][y]);
-                points += pointsForLetter(Language.French, this.tiles[start - 1][y]);
+                points += pointsForLetter(Language.French, this.tiles[end + 1][y]);
                 end++;
             }
 
@@ -142,8 +170,6 @@ export class Board {
     }
 
     wordsFromPlay(play: Play): Word[] {
-        console.log(play);
-
         const words = [];
         let i = 0;
         let points = 0;
@@ -255,7 +281,7 @@ export class Board {
     }
 
     static isDoubleWord(x: number, y: number): boolean {
-        return (x == y || x == 14 - y) && (x <= 4 || x >= 10 || x == 7);
+        return (x == y || x == 14 - y) && (x <= 4 || x >= 10 || x == 7) && x !== 0 && y !== 0 && x !== 14 && y !== 14;
     }
 
     static isDoubleLetter(x: number, y: number): boolean {

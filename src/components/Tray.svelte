@@ -4,69 +4,76 @@
     import Tile from "./Tile.svelte";
 
     import { dropTarget } from "../actions/drop_target";
+    import { Play } from "../lib/play";
+    import { shuffle } from "../lib/shuffle";
 
     let tray = [...letters, ""];
 
-    $: {
-        letters;
+    $: updateTray(letters);
+
+    function updateTray(letters: string[]) {
+        console.log("Updating tray");
         tray = [...letters];
 
         for (let i = tray.length; i < 8; i++) {
             tray.push("");
         }
-
-        // tray = tray;
     }
 
     let draggedIndex: number;
     let draggedLetter: string;
 
     function handleRemove(detail) {
-        console.log("Remove", detail);
-
         if (detail.origin === "tray") {
             tray[detail.trayIndex] = "";
         } else {
             console.log("Wrong origin!", detail);
         }
-        console.log(tray);
     }
 
     function handleDrop(e, i) {
-        console.log("Drop", e.detail, i);
-
         if (tray[i] === "") {
-            tray[i] = e.detail.dataset.letter;
+            if (!Play.isBlankTile(e.detail.dataset.letter)) {
+                tray[i] = e.detail.dataset.letter;
+            } else {
+                tray[i] = " ";
+            }
 
             // Remove from origin.
             e.detail.notifier(e.detail);
         }
-
-        console.log(tray);
     }
 
     function handleDragEnter(event, i) {
-        console.log(event, i);
-
         draggedIndex = i;
-        draggedLetter =  event.detail.dataset.letter;
+
+        if (!Play.isBlankTile(event.detail.dataset.letter)) {
+            draggedLetter = event.detail.dataset.letter;
+        } else {
+            draggedLetter = " ";
+        }
     }
 
     function handleDragLeave(event, i) {
         draggedIndex = -1;
+    }
+
+    function shuffleTray() {
+        tray = shuffle(tray);
     }
 </script>
 
 <style>
     .tray {
         display: grid;
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(9, 1fr);
         background-color: green;
         width: 100%;
         padding: 0.5em;
         box-sizing: border-box;
         border-radius: 5px;
         align-items: center;
+        grid-gap: 5px;
     }
 
     .stretch {
@@ -75,6 +82,10 @@
 
     .no-pointer {
         pointer-events: none;
+    }
+
+    button {
+        background-color: transparent;
     }
 </style>
 
@@ -94,7 +105,7 @@
                 <Tile
                     {letter}
                     isDraggable={true}
-                    dragData={{ letter: letter, origin: 'tray', trayIndex: i, notifier: handleRemove }} />
+                    dragData={{ origin: 'tray', trayIndex: i, notifier: handleRemove }} />
             {:else if draggedIndex === i}
                 <div class="no-pointer">
                     <Tile letter={draggedLetter} isDraggable={false} />
@@ -102,4 +113,5 @@
             {/if}
         </div>
     {/each}
+    <button on:click={shuffleTray}>🔀</button>
 </div>

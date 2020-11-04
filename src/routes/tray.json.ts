@@ -9,7 +9,7 @@ export async function get(req, res, next) {
     const playerKey = req.body.key;
 
     // TODO: Check user can play.
-    if (false && !isValidPlayerKey(gameId, playerId, playerKey)) {
+    if (!isValidPlayerKey(gameId, playerId, playerKey)) {
         next(new ErrorWithCode('Unauthorized', 403));
         return;
     }

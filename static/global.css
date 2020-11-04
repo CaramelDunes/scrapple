@@ -35,8 +35,10 @@ code {
 	}
 }
 
-button {
-	padding: 0.5em;
+button,
+input[type=button],
+input[type=submit] {
+	padding: 0.5em 1em;
 	margin: 0.25em;
 	border-radius: 5px;
 	background-color: #5a67d8;

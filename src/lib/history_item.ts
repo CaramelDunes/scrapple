@@ -24,7 +24,7 @@ export class HistoryItem {
     }
 
     static fromPojo(pojo): HistoryItem {
-        return new HistoryItem(pojo.passed, pojo.exchangedTiles, pojo.words?.map((word) => Word.fromPojo(word)));
+        return new HistoryItem(pojo.passed, pojo.exchangedTiles, pojo.words ? pojo.words.map((word) => Word.fromPojo(word)) : []);
     }
 
     toPojo() {
