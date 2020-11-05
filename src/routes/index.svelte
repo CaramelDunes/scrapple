@@ -32,6 +32,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		justify-content: space-between;
 		margin: 8px;
 		box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 	}
@@ -55,31 +56,25 @@
 <h1>Letters & Words</h1>
 
 <div class="wrapper">
-	<div class="card">
+	<form class="card" action="/game.json" method="post">
 		<h2>New Game</h2>
-		<form action="/game.json" method="post">
-			<div>
-				Language:
-				<input
-					type="radio"
-					id="french"
-					name="language"
-					value="french"
-					checked />
-				<label for="french">🇫🇷</label>
-				<input
-					type="radio"
-					id="english"
-					name="language"
-					value="english" />
-				<label for="english">🇬🇧</label>
-			</div>
-			<input type="submit" value="Play!" />
-		</form>
-	</div>
-	<div class="card">
+		<div>
+			Language:
+			<input
+				type="radio"
+				id="french"
+				name="language"
+				value="french"
+				checked />
+			<label for="french">🇫🇷</label>
+			<input type="radio" id="english" name="language" value="english" />
+			<label for="english">🇬🇧</label>
+		</div>
+		<input type="submit" value="Play!" />
+	</form>
+	<form class="card" action="/join" method="get">
 		<h2>Join Game</h2>
-		<input type="text" size="6" maxlength="6" />
-		<button>Join!</button>
-	</div>
+		<input type="text" size="6" maxlength="6" name="id" />
+		<input type="submit" value="Play!" />
+	</form>
 </div>
