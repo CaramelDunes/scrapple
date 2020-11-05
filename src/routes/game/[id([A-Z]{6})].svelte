@@ -58,18 +58,20 @@
     let channel;
 
     onMount(() => {
-        Pusher.logToConsole = true;
+        if (!game.ended) {
+            Pusher.logToConsole = true;
 
-        const pusher = new Pusher(PUSHER_APP_KEY, {
-            cluster: PUSHER_APP_CLUSTER,
-        });
+            const pusher = new Pusher(PUSHER_APP_KEY, {
+                cluster: PUSHER_APP_CLUSTER,
+            });
 
-        channel = pusher.subscribe(gameId);
+            channel = pusher.subscribe(gameId);
 
-        channel.bind("board", function (data) {
-            console.log("From Pusher", data.message);
-            game = PublicGame.fromPojo(data.message);
-        });
+            channel.bind("board", function (data) {
+                console.log("From Pusher", data.message);
+                game = PublicGame.fromPojo(data.message);
+            });
+        }
     });
 
     async function put(payload) {
