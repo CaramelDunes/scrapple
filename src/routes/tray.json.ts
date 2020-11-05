@@ -5,7 +5,7 @@ import { TheGameStorage } from "../lib/game_storage/the_game_storage";
 
 export async function get(req, res, next) {
     const gameId = req.query.id;
-    const playerId = req.body.playerId;
+    const playerId = parseInt(req.body.playerId);
     const playerKey = req.body.key;
 
     // TODO: Check user can play.
@@ -16,5 +16,5 @@ export async function get(req, res, next) {
     const game: Game = await TheGameStorage.get(gameId);
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ tray: game.trays[playerId] }));
+    res.end(JSON.stringify({ tray: game.racks[playerId] }));
 }

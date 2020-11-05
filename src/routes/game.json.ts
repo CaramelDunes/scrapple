@@ -10,13 +10,13 @@ import { pusher } from '../lib/server/pusher';
 
 export async function get(req, res, next) {
     const gameId = req.query.id;
-    const playerId = req.query.playerId ?? '';
+    const playerId = parseInt(req.query.playerId ?? '');
     const playerKey = req.query.playerKey ?? '';
 
     const game: Game = await TheGameStorage.get(gameId);
 
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: isValidPlayerKey(gameId, playerId, playerKey) ? game.trays[playerId] : null }));
+    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: isValidPlayerKey(gameId, playerId, playerKey) ? game.racks[playerId] : null }));
 }
 
 export async function post(req, res, next) {
@@ -28,7 +28,9 @@ export async function post(req, res, next) {
     }
 
     const gameId = Game.randomId();
-    await TheGameStorage.set(gameId, Game.new(language));
+
+    const newGame = Game.new(language);
+    await TheGameStorage.set(gameId, newGame);
 
     res.setHeader('Set-Cookie', generateCookie(gameId, 0));
     res.setHeader('Location', `/game/${gameId}`);
@@ -81,7 +83,7 @@ export async function put(req, res, next) {
     res.end(JSON.stringify({
         success: success,
         game: publicGame,
-        tray: game.trays[playerId]
+        tray: game.racks[playerId]
     }));
 
     if (success) {

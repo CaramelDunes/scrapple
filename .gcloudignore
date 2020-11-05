@@ -1,0 +1,9 @@
+.vscode/
+__sapper__/
+.git/
+node_modules/
+Scrabble/
+.gitignore
+hidden/
+README.md
+src/node_modules/

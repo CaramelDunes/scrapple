@@ -12,9 +12,9 @@
 
 <style>
     .board {
-        width: 100%;
-        height: 100%;
         min-width: 525px;
+        max-height: 100vh;
+        max-width: 100vh;
     }
 
     .tray-container {
@@ -25,7 +25,9 @@
 <div class="board">
     <Board board={game.board} bind:play />
 
-    <div class="tray-container">
-        <Tray letters={tray} />
-    </div>
+    {#if tray}
+        <div class="tray-container">
+            <Tray letters={tray} />
+        </div>
+    {/if}
 </div>

@@ -1,12 +1,27 @@
 <script context="module" lang="ts">
     export async function preload(page, session) {
-        const [playerId, playerKey] = session.cookies[page.params.id].split(
-            ":"
-        );
+        let playerId;
+        let playerKey;
 
-        const res = await this.fetch(
-            `game.json?id=${page.params.id}&playerId=${playerId}&playerKey=${playerKey}`
-        );
+        if (page.params.id in session.cookies) {
+            const tokens = session.cookies[page.params.id].split(":");
+
+            if (tokens.length === 2) {
+                playerId = parseInt(tokens[0]);
+                playerKey = tokens[1];
+            }
+        }
+
+        let res;
+
+        if (playerKey) {
+            res = await this.fetch(
+                `game.json?id=${page.params.id}&playerId=${playerId}&playerKey=${playerKey}`
+            );
+        } else {
+            res = await this.fetch(`game.json?id=${page.params.id}`);
+        }
+
         const game = await res.json();
 
         return {
@@ -31,7 +46,7 @@
     import { PublicGame } from "../../lib/public_game";
     import type { Word } from "../../lib/word";
 
-    export let playerId: string;
+    export let playerId: number;
     export let playerKey: string;
     export let gameId: string;
     export let rawGame;
@@ -56,28 +71,21 @@
         });
     });
 
-    async function play() {
+    async function put(payload) {
         const response = await fetch(`/game.json`, {
             method: "PUT",
             cache: "no-cache",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                gameId: gameId,
-                playerId: playerId,
-                playerKey: playerKey,
-                play: currentPlay,
-            }),
+            body: JSON.stringify(payload),
         });
-
-        console.log(currentPlay);
 
         if (response.ok) {
             const pojo = await response.json();
 
             if (pojo.success) {
-                console.log("From Play", pojo);
+                console.log("From Put", pojo);
                 game = PublicGame.fromPojo(pojo.game);
                 tray = pojo.tray;
             }
@@ -86,47 +94,32 @@
         }
     }
 
-    async function exchangeTiles(tiles: string[]) {
-        const response = await fetch(`/game.json`, {
-            method: "PUT",
-            cache: "no-cache",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                gameId: gameId,
-                playerId: playerId,
-                playerKey: playerKey,
-                exchange: true,
-                exchangedTiles: tiles,
-            }),
+    async function play() {
+        await put({
+            gameId: gameId,
+            playerId: playerId,
+            playerKey: playerKey,
+            play: currentPlay,
         });
+    }
 
-        const pojo = await response.json();
-        console.log("From Play", pojo);
-        game = PublicGame.fromPojo(pojo.game);
-        tray = pojo.tray;
+    async function exchangeTiles(tiles: string[]) {
+        await put({
+            gameId: gameId,
+            playerId: playerId,
+            playerKey: playerKey,
+            exchange: true,
+            exchangedTiles: tiles,
+        });
     }
 
     async function pass() {
-        const response = await fetch(`/game.json`, {
-            method: "PUT",
-            cache: "no-cache",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                gameId: gameId,
-                playerId: playerId,
-                playerKey: playerKey,
-                pass: true,
-            }),
+        await put({
+            gameId: gameId,
+            playerId: playerId,
+            playerKey: playerKey,
+            pass: true,
         });
-
-        const pojo = await response.json();
-        console.log("From Pass", pojo);
-        game = PublicGame.fromPojo(pojo.game);
-        tray = pojo.tray;
     }
 
     let playTooltip = "";
@@ -140,77 +133,125 @@
             currentWords = game.board.wordsFromPlay(currentPlay);
         }
     }
+
+    const prefixes = playerKey
+        ? ["You", "Your opponent"]
+        : ["Player #1", "Player #2"];
+
+    if (playerKey && playerId === 1) prefixes.reverse();
 </script>
 
 <style>
     .wrapper {
-        display: grid;
-        grid-template-columns: 250px 1fr 250px;
-        background-color: #f4f4f4;
-        height: 100%;
-        width: 100%;
-        min-width: 800px;
-        margin: 0 auto;
-        border: 1px solid black;
-        padding: 5px;
-    }
-
-    .controls {
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        max-height: 100vh;
     }
 
     .history {
-        background-color: white;
         overflow: auto;
-        /* width: 250px; */
         display: flex;
         flex-direction: column;
+        border-radius: 10px;
+        border: solid 3px #d0d0d0;
+        min-width: 200px;
+        margin: 0 16px;
+    }
+
+    .game-info {
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+        border: solid 3px #d0d0d0;
+        min-width: 200px;
+        text-align: center;
+        margin: 0 16px;
+    }
+
+    .header {
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        background-color: #d0d0d0;
+        border: solid 3px #d0d0d0;
+        padding: 5px;
+        font-size: large;
+        color: white;
+    }
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style-position: inside;
+    }
+
+    ol li {
+        padding: 5px 3px;
+        color: black;
+        font-weight: bold;
+    }
+
+    ol li:nth-child(even) {
+        background-color: #d0d0d0;
+        color: white;
     }
 </style>
 
 <svelte:head>
-    <title>Game</title>
+    <title>Game - {gameId}</title>
 </svelte:head>
 
 <div class="wrapper">
-    <div class="history">
-        <div>Turn of {game.playerTurn + 1}</div>
-        <div>Score of Player 1: {game.scores[0]}</div>
-        <div>Score of Player 2: {game.scores[1]}</div>
-        <div>There are {game.bagSize} tiles in the bag.</div>
+    <div class="game-info">
+        <div class="header">Turn {game.history.length + 1}</div>
+        <div>{prefixes[0]}</div>
+        <div>{game.scores[0]}</div>
+        <div>{prefixes[1]}</div>
+        <div>{game.scores[1]}</div>
+        <div>{game.bagSize} tiles left.</div>
+        <div>This game's code: {gameId}.</div>
+        <!-- <div>${"location.href.replace('game', 'join')"}<a href="s">📋</a></div> -->
         <div style="flex:1;" />
-        <div class="controls">
+        {#if playerKey}
             <button
                 on:click={play}
-                disabled={game.playerTurn !== parseInt(playerId) || currentWords.length === 0}
+                disabled={game.playerTurn !== playerId || currentWords.length === 0}
                 title={playTooltip}>Play
                 {currentWords
                     .map((w) => w.letters.join('') + ` (${w.points})`)
                     .join(', ')}</button>
             <button
                 on:click={pass}
-                disabled={game.playerTurn !== parseInt(playerId)}
+                disabled={game.playerTurn !== playerId}
                 title="Pass and score 0">Pass</button>
             <button
-                disabled={game.playerTurn !== parseInt(playerId)}
+                disabled={game.playerTurn !== playerId}
                 title="Exchange one or more tiles and score 0">Exchange tiles</button>
-        </div>
+        {/if}
     </div>
     <Table {game} {tray} bind:play={currentPlay} />
     <div class="history">
-        <ol>
-            {#each game.history as item}
+        <div class="header">History</div>
+        <ol reversed>
+            {#each game.history as item, i}
                 {#if item.passed}
-                    <li>Passed.</li>
+                    <li>{prefixes[game.playerTurn ^ (i & 1) ^ 1]} passed</li>
                 {:else if item.exchangedTiles > 0}
-                    <li>Exchanged {item.exchangedTiles} tiles.</li>
+                    <li>
+                        {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                        exchanged
+                        {item.exchangedTiles}
+                        tiles
+                    </li>
                 {:else}
                     <li>
-                        Played
+                        {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                        played
                         {item.words
                             .map((w) => w.letters.join('') + ` (${w.points})`)
-                            .join(', ')}
+                            .join(' + ')}
+                        =
+                        {item.points}
                     </li>
                 {/if}
             {/each}

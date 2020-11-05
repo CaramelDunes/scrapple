@@ -1,5 +1,6 @@
 import { Language } from './language';
 import { frenchDictionary } from './dictionaries/french';
+import { englishDictionary } from './dictionaries/english';
 
 export class Dictionary {
     tree;
@@ -24,5 +25,6 @@ export class Dictionary {
 }
 
 export const dictionaries = new Map<Language, Dictionary>([
-    [Language.French, new Dictionary(JSON.parse(frenchDictionary))]
+    [Language.French, new Dictionary(JSON.parse(frenchDictionary))],
+    [Language.English, new Dictionary(JSON.parse(englishDictionary))]
 ]);

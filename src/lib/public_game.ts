@@ -10,8 +10,9 @@ export class PublicGame {
     traySizes: number[];
     bagSize: number;
     history: HistoryItem[];
+    ended: boolean;
 
-    constructor(language: Language, board: Board, playerTurn: number, scores: number[], traySizes: number[], bagSize: number, history: HistoryItem[]) {
+    constructor(language: Language, board: Board, playerTurn: number, scores: number[], traySizes: number[], bagSize: number, history: HistoryItem[], ended: boolean) {
         this.language = language;
         this.board = board;
         this.playerTurn = playerTurn;
@@ -19,10 +20,11 @@ export class PublicGame {
         this.traySizes = traySizes;
         this.bagSize = bagSize;
         this.history = history;
+        this.ended = ended;
     }
 
     static fromPojo(pojo): PublicGame {
-        return new PublicGame(pojo.language, Board.fromPojo(pojo.board), pojo.playerTurn, pojo.scores, pojo.traySizes, pojo.bagSize, pojo.history.map((item) => HistoryItem.fromPojo(item)));
+        return new PublicGame(pojo.language, Board.fromPojo(pojo.board), pojo.playerTurn, pojo.scores, pojo.traySizes, pojo.bagSize, pojo.history.map((item) => HistoryItem.fromPojo(item)), pojo.ended);
     }
 
     toPojo() {
@@ -33,7 +35,8 @@ export class PublicGame {
             scores: this.scores,
             traySizes: this.traySizes,
             bagSize: this.bagSize,
-            history: this.history.map((item) => item.toPojo())
+            history: this.history.map((item) => item.toPojo()),
+            ended: this.ended
         };
     }
 }

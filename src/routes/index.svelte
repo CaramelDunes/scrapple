@@ -20,10 +20,12 @@
 	.wrapper {
 		display: flex;
 		flex-wrap: wrap;
+		max-width: 50em;
+		margin: 0 auto;
 	}
 
 	.card {
-		flex-grow: 1;
+		flex: 1 1 0px;
 		border: 3px solid lightgrey;
 		border-radius: 10px;
 		padding: 10px;

@@ -15,5 +15,5 @@ export function generatePlayerKey(gameId: string, playerId: number): string {
 }
 
 export function generateCookie(gameId: string, playerId: number): string {
-    return `${gameId}=${playerId}:${generatePlayerKey(gameId, playerId)}; SameSite=Lax; Max-Age=${3600 * 3}; Path=/game`
+    return `${gameId}=${playerId}:${generatePlayerKey(gameId, playerId)}; SameSite=Lax; Max-Age=${3600 * 24 * 7}; Path=/game`
 }
