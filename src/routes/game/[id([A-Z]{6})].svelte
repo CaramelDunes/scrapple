@@ -218,11 +218,20 @@
         flex: 1 1 0;
     }
 
+    .no-tray {
+    }
+
     @media (orientation: landscape) {
         .board {
             width: 84vh;
             height: 84vh;
             font-size: 4.2vh;
+        }
+
+        .no-tray {
+            height: 100vh;
+            width: 100vh;
+            font-size: 5vh;
         }
 
         .tray-container {
@@ -254,21 +263,22 @@
 </svelte:head>
 
 <div class="wrapper">
-    <div class="table">
-        <div class="board">
+    <div>
+        <div class="board" class:no-tray={!tray || game.ended}>
             <Board
                 board={game.board}
                 language={game.language}
                 bind:play={currentPlay} />
         </div>
 
-        {#if tray}
+        {#if tray && !game.ended}
             <div class="tray-container">
                 <Tray language={game.language} letters={tray} />
             </div>
         {/if}
+
         <div class="controls">
-            {#if playerKey}
+            {#if playerKey && !game.ended}
                 <button
                     style="flex-grow:3;"
                     on:click={play}
