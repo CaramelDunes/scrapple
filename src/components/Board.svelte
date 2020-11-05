@@ -133,41 +133,39 @@
   }
 </style>
 
-<div class="container">
-  <div class="grid">
-    {#each board.tiles as _, x}
-      {#each scratchBoard.tiles as _, y}
-        <div
-          class="square"
-          class:triple-word={Board.isTripleWord(x, y)}
-          class:double-word={Board.isDoubleWord(x, y)}
-          class:double-letter={Board.isDoubleLetter(x, y)}
-          class:triple-letter={Board.isTripleLetter(x, y)}
-          data-droptarget={board.tiles[x][y] === ''}
-          use:dropTarget={{ ondrop: (e) => {
-              handleDrop(e, x, y);
-            }, ondragenter: (e) => {
-              handleDragEnter(e, x, y);
-            }, ondragleave: (e) => {
-              handleDragLeave(e, x, y);
-            } }}>
-          {#if board.tiles[x][y] !== ''}
-            <Tile letter={board.tiles[x][y]} {language} />
-          {:else if scratchBoard.tiles[x][y] !== ''}
-            <div class="phantom">
-              <Tile
-                letter={scratchBoard.tiles[x][y]}
-                {language}
-                isDraggable={true}
-                dragData={{ origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
-            </div>
-          {:else if dragX == x && dragY == y && dragValue !== ''}
-            <div class="phantom no-pointer">
-              <Tile letter={dragValue} {language} />
-            </div>
-          {/if}
-        </div>
-      {/each}
+<div class="grid">
+  {#each board.tiles as _, x}
+    {#each scratchBoard.tiles as _, y}
+      <div
+        class="square"
+        class:triple-word={Board.isTripleWord(x, y)}
+        class:double-word={Board.isDoubleWord(x, y)}
+        class:double-letter={Board.isDoubleLetter(x, y)}
+        class:triple-letter={Board.isTripleLetter(x, y)}
+        data-droptarget={board.tiles[x][y] === ''}
+        use:dropTarget={{ ondrop: (e) => {
+            handleDrop(e, x, y);
+          }, ondragenter: (e) => {
+            handleDragEnter(e, x, y);
+          }, ondragleave: (e) => {
+            handleDragLeave(e, x, y);
+          } }}>
+        {#if board.tiles[x][y] !== ''}
+          <Tile letter={board.tiles[x][y]} {language} />
+        {:else if scratchBoard.tiles[x][y] !== ''}
+          <div class="phantom">
+            <Tile
+              letter={scratchBoard.tiles[x][y]}
+              {language}
+              isDraggable={true}
+              dragData={{ origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
+          </div>
+        {:else if dragX == x && dragY == y && dragValue !== ''}
+          <div class="phantom no-pointer">
+            <Tile letter={dragValue} {language} />
+          </div>
+        {/if}
+      </div>
     {/each}
-  </div>
+  {/each}
 </div>
