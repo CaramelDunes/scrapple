@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { Language } from "../lib/language";
+    import type { Language } from "../lib/language";
 
     import { pointsForLetter } from "../lib/points";
     import { draggable } from "../actions/draggable";
     import { Play } from "../lib/play";
 
     export let letter: string;
+    export let language: Language;
     export let isDraggable: boolean = false;
     export let dragData = null;
 
@@ -14,14 +15,11 @@
 
 <style>
     .tile {
-        box-sizing: border-box;
         position: relative;
         width: 100%;
         background-color: burlywood;
         border-radius: 5px;
-        text-align: center;
         user-select: none;
-        font-size: 100vw;
     }
 
     .tile:after {
@@ -30,21 +28,13 @@
         padding-bottom: 100%;
     }
 
-    .inner > .corner {
-        font-size: small;
+    .corner {
+        position: absolute;
+        right: 2px;
+        top: 2px;
+        font-size: 0.4em;
         pointer-events: none;
         user-select: none;
-        align-self: flex-start;
-        line-height: 0.75em;
-    }
-
-    .inner > .center {
-        font-size: large;
-        font-weight: bold;
-        pointer-events: none;
-        user-select: none;
-        align-self: center;
-        flex-grow: 1;
     }
 
     .dragged {
@@ -53,14 +43,18 @@
     }
 
     .inner {
-        box-sizing: border-box;
-
         position: absolute;
         width: 100%;
         height: 100%;
         display: flex;
-        flex-direction: row;
-        padding: 5px;
+        justify-content: center;
+        align-items: center;
+        padding-top: 3px;
+        padding-right: 5px;
+        font-size: 0.75em;
+        font-weight: bold;
+        pointer-events: none;
+        user-select: none;
     }
 </style>
 
@@ -76,9 +70,7 @@
     }}
     data-letter={letter}>
     <div class="inner">
-        <div class="center">
-            {Play.isBlankTile(letter) ? letter.toUpperCase() + '*' : letter}
-        </div>
-        <div class="corner">{pointsForLetter(Language.French, letter)}</div>
+        {Play.isBlankTile(letter) ? letter.toUpperCase() + '*' : letter}
     </div>
+    <div class="corner">{pointsForLetter(language, letter)}</div>
 </div>

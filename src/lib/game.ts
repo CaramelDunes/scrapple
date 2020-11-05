@@ -68,13 +68,8 @@ export class Game {
 
     isValidPlay(playerId: number, play: Play): boolean {
         if (this.playerTurn === playerId && this.racks.contains(playerId, play.letters) && this.board.isValidPlay(play)) {
-            const words = this.board.wordsFromPlay(play);
-
-            for (const word of words) {
-                if (!dictionaries.get(this.language).has(word.letters.join('').toUpperCase())) return false;
-            }
-
-            return true;
+            const words = this.board.wordsFromPlay(play, this.language);
+            return words.every((word) => dictionaries.get(this.language).has(word.letters.join('').toUpperCase()));
         }
 
         return false;
@@ -89,7 +84,7 @@ export class Game {
     }
 
     play(play: Play) {
-        const words = this.board.wordsFromPlay(play);
+        const words = this.board.wordsFromPlay(play, this.language);
         let points = words.map((word) => word.points).reduce((a, b) => a + b, 0);
 
         if (play.letters.length === 7) {

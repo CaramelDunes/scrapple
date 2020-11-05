@@ -47,10 +47,10 @@ function draggable(node, params) {
             detail: { initialX, initialY }
         }));
 
-        window.addEventListener('mousemove', handleMousemove);
-        window.addEventListener('mouseup', handleMouseup);
-        window.addEventListener('touchmove', handleMousemove);
-        window.addEventListener('touchend', handleMouseup);
+        window.addEventListener('mousemove', handleMousemove, { passive: false });
+        window.addEventListener('mouseup', handleMouseup, { passive: false });
+        window.addEventListener('touchmove', handleMousemove, { passive: false });
+        window.addEventListener('touchend', handleMouseup, { passive: false });
     }
 
     function handleMousemove(event) {

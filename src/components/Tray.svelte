@@ -1,18 +1,19 @@
 <script lang="ts">
-    export let letters: string[];
-
     import Tile from "./Tile.svelte";
 
     import { dropTarget } from "../actions/drop_target";
     import { Play } from "../lib/play";
     import { shuffle } from "../lib/shuffle";
+    import type { Language } from "../lib/language";
+
+    export let letters: string[];
+    export let language: Language;
 
     let tray = [...letters, ""];
 
     $: updateTray(letters);
 
     function updateTray(letters: string[]) {
-        console.log("Updating tray");
         tray = [...letters];
 
         for (let i = tray.length; i < 8; i++) {
@@ -65,15 +66,15 @@
 
 <style>
     .tray {
+        width: 100%;
+        height: 100%;
         display: grid;
         grid-template-columns: repeat(9, 1fr);
-        background-color: green;
-        width: 100%;
-        padding: 0.5em;
-        box-sizing: border-box;
-        border-radius: 5px;
         align-items: center;
-        grid-gap: 5px;
+        grid-gap: 0.1em;
+        padding: 0.2em;
+        border-radius: 5px;
+        background-color: green;
     }
 
     .stretch {
@@ -104,11 +105,15 @@
             {#if letter !== ''}
                 <Tile
                     {letter}
+                    {language}
                     isDraggable={true}
                     dragData={{ origin: 'tray', trayIndex: i, notifier: handleRemove }} />
             {:else if draggedIndex === i}
                 <div class="no-pointer">
-                    <Tile letter={draggedLetter} isDraggable={false} />
+                    <Tile
+                        letter={draggedLetter}
+                        {language}
+                        isDraggable={false} />
                 </div>
             {/if}
         </div>

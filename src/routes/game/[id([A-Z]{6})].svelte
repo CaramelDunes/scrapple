@@ -35,7 +35,6 @@
 </script>
 
 <script lang="ts">
-    import Table from "../../components/Table.svelte";
     import Pusher from "pusher-js";
     import {
         PUSHER_APP_CLUSTER,
@@ -45,6 +44,8 @@
     import { onMount } from "svelte";
     import { PublicGame } from "../../lib/public_game";
     import type { Word } from "../../lib/word";
+    import Board from "../../components/Board.svelte";
+    import Tray from "../../components/Tray.svelte";
 
     export let playerId: number;
     export let playerKey: string;
@@ -130,7 +131,7 @@
         currentWords = [];
 
         if (currentPlay && game.board.isValidPlay(currentPlay)) {
-            currentWords = game.board.wordsFromPlay(currentPlay);
+            currentWords = game.board.wordsFromPlay(currentPlay, game.language);
         }
     }
 
@@ -145,55 +146,104 @@
     .wrapper {
         display: flex;
         justify-content: center;
-        max-height: 100vh;
+        align-items: stretch;
+        flex-flow: row wrap;
     }
 
     .history {
         overflow: auto;
+        padding: 0.25em 0;
+    }
+
+    .column {
         display: flex;
         flex-direction: column;
         border-radius: 10px;
         border: solid 3px #d0d0d0;
-        min-width: 200px;
-        margin: 0 16px;
     }
 
     .game-info {
-        display: flex;
-        flex-direction: column;
-        border-radius: 10px;
-        border: solid 3px #d0d0d0;
-        min-width: 200px;
         text-align: center;
-        margin: 0 16px;
+        padding: 1em;
     }
 
     .header {
         font-weight: bold;
-        text-align: center;
         text-transform: uppercase;
         background-color: #d0d0d0;
         border: solid 3px #d0d0d0;
         padding: 5px;
         font-size: large;
-        color: white;
+        text-align: center;
     }
 
     ol {
         margin: 0;
         padding: 0;
-        list-style-position: inside;
     }
 
     ol li {
-        padding: 5px 3px;
         color: black;
-        font-weight: bold;
+        padding: 0.25em 0.5em;
     }
 
     ol li:nth-child(even) {
-        background-color: #d0d0d0;
-        color: white;
+        background-color: #f2f2f2;
+    }
+
+    .scores {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-auto-flow: column;
+        text-align: center;
+    }
+
+    .tray-container {
+        padding: 0.25rem;
+    }
+
+    .board {
+        margin: 0 auto;
+    }
+
+    .controls {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .controls > button {
+        flex: 1 1 0;
+    }
+
+    @media (orientation: landscape) {
+        .board {
+            width: 84vh;
+            height: 84vh;
+            font-size: 4.2vh;
+        }
+
+        .tray-container {
+            width: 84vh;
+            font-size: 6.7vh;
+        }
+
+        .column {
+            margin-top: 0.25em;
+        }
+    }
+
+    @media (orientation: portrait) {
+        .board {
+            height: 100vw;
+            width: 100vw;
+            font-size: 5vw;
+        }
+
+        .tray-container {
+            width: 100vw;
+            font-size: 8vw;
+        }
     }
 </style>
 
@@ -202,59 +252,88 @@
 </svelte:head>
 
 <div class="wrapper">
-    <div class="game-info">
-        <div class="header">Turn {game.history.length + 1}</div>
-        <div>{prefixes[0]}</div>
-        <div>{game.scores[0]}</div>
-        <div>{prefixes[1]}</div>
-        <div>{game.scores[1]}</div>
-        <div>{game.bagSize} tiles left.</div>
-        <div>This game's code: {gameId}.</div>
-        <!-- <div>${"location.href.replace('game', 'join')"}<a href="s">📋</a></div> -->
-        <div style="flex:1;" />
-        {#if playerKey}
-            <button
-                on:click={play}
-                disabled={game.playerTurn !== playerId || currentWords.length === 0}
-                title={playTooltip}>Play
-                {currentWords
-                    .map((w) => w.letters.join('') + ` (${w.points})`)
-                    .join(', ')}</button>
-            <button
-                on:click={pass}
-                disabled={game.playerTurn !== playerId}
-                title="Pass and score 0">Pass</button>
-            <button
-                disabled={game.playerTurn !== playerId}
-                title="Exchange one or more tiles and score 0">Exchange tiles</button>
+    <div class="table">
+        <div class="board">
+            <Board
+                board={game.board}
+                language={game.language}
+                bind:play={currentPlay} />
+        </div>
+
+        {#if tray}
+            <div class="tray-container">
+                <Tray language={game.language} letters={tray} />
+            </div>
         {/if}
+        <div class="controls">
+            {#if playerKey}
+                <button
+                    style="flex-grow:3;"
+                    on:click={play}
+                    disabled={game.playerTurn !== playerId || currentWords.length === 0}
+                    title={playTooltip}>Play
+                    {currentWords
+                        .map((w) => w.letters.join('') + ` (${w.points})`)
+                        .join(', ')}</button>
+                <button
+                    on:click={pass}
+                    disabled={game.playerTurn !== playerId}
+                    title="Pass and score 0">Pass</button>
+                <button
+                    disabled={game.playerTurn !== playerId}
+                    title="Exchange one or more tiles and score 0">Exchange
+                    tiles</button>
+            {/if}
+        </div>
     </div>
-    <Table {game} {tray} bind:play={currentPlay} />
-    <div class="history">
+
+    <div class="column">
+        <div class="header">Turn {game.history.length + 1}</div>
+        <div class="game-info">
+            <div class="scores">
+                <div>{prefixes[0]}</div>
+                <div>{game.scores[0]}</div>
+                <div>{prefixes[1]}</div>
+                <div>{game.scores[1]}</div>
+            </div>
+            <div>{game.bagSize} tiles left.</div>
+            <div>This game's code: {gameId}.</div>
+        </div>
+
+        <!-- <div>${"location.href.replace('game', 'join')"}<a href="s">📋</a></div> -->
         <div class="header">History</div>
-        <ol reversed>
-            {#each game.history as item, i}
-                {#if item.passed}
-                    <li>{prefixes[game.playerTurn ^ (i & 1) ^ 1]} passed</li>
-                {:else if item.exchangedTiles > 0}
-                    <li>
-                        {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
-                        exchanged
-                        {item.exchangedTiles}
-                        tiles
-                    </li>
-                {:else}
-                    <li>
-                        {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
-                        played
-                        {item.words
-                            .map((w) => w.letters.join('') + ` (${w.points})`)
-                            .join(' + ')}
-                        =
-                        {item.points}
-                    </li>
-                {/if}
-            {/each}
-        </ol>
+        <div class="history">
+            <ol reversed>
+                {#each game.history as item, i}
+                    {#if item.passed}
+                        <li>
+                            {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                            passed
+                        </li>
+                    {:else if item.exchangedTiles > 0}
+                        <li>
+                            {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                            exchanged
+                            {item.exchangedTiles}
+                            tiles
+                        </li>
+                    {:else}
+                        <li>
+                            {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                            played
+                            <b>{item.words
+                                    .map(
+                                        (w) =>
+                                            w.letters.join('') +
+                                            ` (${w.points})`
+                                    )
+                                    .join(' + ')}
+                                =
+                                {item.points}</b>
+                        </li>
+                    {/if}
+                {/each}
+            </ol>
+        </div>
     </div>
 </div>

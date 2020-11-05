@@ -1,4 +1,4 @@
-import { Language } from "./language";
+import type { Language } from "./language";
 import { Direction, Play } from "./play";
 import { pointsForLetter } from "./points";
 import { Word } from "./word";
@@ -76,8 +76,6 @@ export class Board {
             || (play.direction === Direction.Horizontal && play.y === 7 && play.x <= 7 && play.x + play.letters.length > 7)
             || (play.direction === Direction.Vertical && play.x === 7 && play.y <= 7 && play.y + play.letters.length > 7);
 
-        console.log(middle);
-
         return middle && i === play.letters.length;
     }
 
@@ -109,7 +107,8 @@ export class Board {
         }
     }
 
-    private findCrossWord(x, y, direction, letter): Word {
+    private findCrossWord(x: number, y: number,
+        direction: Direction, letter: string, language: Language): Word {
         let start;
         let points = 0;
         let multiplier = 1;
@@ -120,19 +119,19 @@ export class Board {
 
             while (start >= 1 && this.tiles[start - 1][y] !== '') {
                 word.unshift(this.tiles[start - 1][y]);
-                points += pointsForLetter(Language.French, this.tiles[start - 1][y]);
+                points += pointsForLetter(language, this.tiles[start - 1][y]);
                 start--;
             }
 
             word.push(letter);
-            points += pointsForLetter(Language.French, letter) * Board.squareLetterMultiplier(x, y);
+            points += pointsForLetter(language, letter) * Board.squareLetterMultiplier(x, y);
             multiplier *= Board.squareWordMultiplier(x, y);
 
             let end = x;
 
             while (end <= 13 && this.tiles[end + 1][y] !== '') {
                 word.push(this.tiles[end + 1][y]);
-                points += pointsForLetter(Language.French, this.tiles[end + 1][y]);
+                points += pointsForLetter(language, this.tiles[end + 1][y]);
                 end++;
             }
 
@@ -144,20 +143,20 @@ export class Board {
 
             while (start >= 1 && this.tiles[x][start - 1] !== '') {
                 word.unshift(this.tiles[x][start - 1]);
-                points += pointsForLetter(Language.French, this.tiles[x][start - 1]);
+                points += pointsForLetter(language, this.tiles[x][start - 1]);
 
                 start--;
             }
 
             word.push(letter);
-            points += pointsForLetter(Language.French, letter) * Board.squareLetterMultiplier(x, y);
+            points += pointsForLetter(language, letter) * Board.squareLetterMultiplier(x, y);
             multiplier *= Board.squareWordMultiplier(x, y);
 
             let end = y;
 
             while (end <= 13 && this.tiles[x][end + 1] !== '') {
                 word.push(this.tiles[x][end + 1]);
-                points += pointsForLetter(Language.French, this.tiles[x][end + 1]);
+                points += pointsForLetter(language, this.tiles[x][end + 1]);
                 end++;
             }
 
@@ -169,7 +168,7 @@ export class Board {
         return null;
     }
 
-    wordsFromPlay(play: Play): Word[] {
+    wordsFromPlay(play: Play, language: Language): Word[] {
         const words = [];
         let i = 0;
         let points = 0;
@@ -181,12 +180,12 @@ export class Board {
 
             while (start >= 1 && this.tiles[start - 1][play.y] !== '') {
                 word.unshift(this.tiles[start - 1][play.y]);
-                points += pointsForLetter(Language.French, this.tiles[start - 1][play.y]);
+                points += pointsForLetter(language, this.tiles[start - 1][play.y]);
                 start--;
             }
 
             word.push(play.letters[i]);
-            points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
+            points += pointsForLetter(language, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
             multiplier *= Board.squareWordMultiplier(play.x, play.y);
             i++;
 
@@ -195,12 +194,12 @@ export class Board {
             while (end <= 13) {
                 if (this.tiles[end + 1][play.y] !== '') {
                     word.push(this.tiles[end + 1][play.y]);
-                    points += pointsForLetter(Language.French, this.tiles[end + 1][play.y]);
+                    points += pointsForLetter(language, this.tiles[end + 1][play.y]);
                 } else {
                     if (i >= play.letters.length) break;
 
                     word.push(play.letters[i]);
-                    points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(end + 1, play.y);
+                    points += pointsForLetter(language, play.letters[i]) * Board.squareLetterMultiplier(end + 1, play.y);
                     multiplier *= Board.squareWordMultiplier(end + 1, play.y);
                     i++;
                 }
@@ -215,7 +214,7 @@ export class Board {
             i = 0;
             for (let x = play.x; x < 15; x++) {
                 if (this.tiles[x][play.y] === '') {
-                    const word = this.findCrossWord(x, play.y, Direction.Vertical, play.letters[i]);
+                    const word = this.findCrossWord(x, play.y, Direction.Vertical, play.letters[i], language);
                     if (word) words.push(word);
 
                     i++;
@@ -229,12 +228,12 @@ export class Board {
 
             while (start >= 1 && this.tiles[play.x][start - 1] !== '') {
                 word.unshift(this.tiles[play.x][start - 1]);
-                points += pointsForLetter(Language.French, this.tiles[play.x][start - 1]);
+                points += pointsForLetter(language, this.tiles[play.x][start - 1]);
                 start--;
             }
 
             word.push(play.letters[i]);
-            points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
+            points += pointsForLetter(language, play.letters[i]) * Board.squareLetterMultiplier(play.x, play.y);
             multiplier *= Board.squareWordMultiplier(play.x, play.y);
             i++;
 
@@ -243,12 +242,12 @@ export class Board {
             while (end <= 13) {
                 if (this.tiles[play.x][end + 1] !== '') {
                     word.push(this.tiles[play.x][end + 1]);
-                    points += pointsForLetter(Language.French, this.tiles[play.x][end + 1]);
+                    points += pointsForLetter(language, this.tiles[play.x][end + 1]);
                 } else {
                     if (i >= play.letters.length) break;
 
                     word.push(play.letters[i]);
-                    points += pointsForLetter(Language.French, play.letters[i]) * Board.squareLetterMultiplier(play.x, end + 1);
+                    points += pointsForLetter(language, play.letters[i]) * Board.squareLetterMultiplier(play.x, end + 1);
                     multiplier *= Board.squareWordMultiplier(play.x, end + 1);
                     i++;
                 }
@@ -263,7 +262,7 @@ export class Board {
             i = 0;
             for (let y = play.y; y < 15; y++) {
                 if (this.tiles[play.x][y] === '') {
-                    const word = this.findCrossWord(play.x, y, Direction.Horizontal, play.letters[i]);
+                    const word = this.findCrossWord(play.x, y, Direction.Horizontal, play.letters[i], language);
                     if (word) words.push(word);
 
                     i++;

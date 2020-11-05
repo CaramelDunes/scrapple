@@ -3,11 +3,13 @@
 
   import { Board } from "../lib/board";
   import { playFromScratchBoard } from "../lib/client/board";
+  import type { Language } from "../lib/language";
   import { Play } from "../lib/play";
 
   import Tile from "./Tile.svelte";
 
   export let board: Board;
+  export let language: Language;
   export let play: Play;
 
   let scratchBoard: Board = Board.empty();
@@ -85,19 +87,7 @@
 </script>
 
 <style>
-  .container {
-    position: relative;
-    width: 100%;
-    min-width: 600px;
-  }
-  .container:after {
-    content: "";
-    display: block;
-    padding-bottom: 100%;
-  }
-
   .grid {
-    position: absolute;
     display: grid;
     grid-template-columns: repeat(15, 1fr);
     grid-template-rows: repeat(15, 1fr);
@@ -105,12 +95,15 @@
     width: 100%;
     height: 100%;
     background-color: white;
+    border: 3px solid #f4f4f4;
+    border-radius: 5px;
   }
 
   .square {
-    padding: 2px;
+    /* padding: 2px; */
     border-radius: 5px;
     user-select: none;
+    border: 1px solid #f4f4f4;
   }
 
   .double-word {
@@ -159,17 +152,18 @@
               handleDragLeave(e, x, y);
             } }}>
           {#if board.tiles[x][y] !== ''}
-            <Tile letter={board.tiles[x][y]} />
+            <Tile letter={board.tiles[x][y]} {language} />
           {:else if scratchBoard.tiles[x][y] !== ''}
             <div class="phantom">
               <Tile
                 letter={scratchBoard.tiles[x][y]}
+                {language}
                 isDraggable={true}
                 dragData={{ origin: 'board', originX: x, originY: y, notifier: handleRemove }} />
             </div>
           {:else if dragX == x && dragY == y && dragValue !== ''}
             <div class="phantom no-pointer">
-              <Tile letter={dragValue} />
+              <Tile letter={dragValue} {language} />
             </div>
           {/if}
         </div>
