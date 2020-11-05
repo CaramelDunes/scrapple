@@ -67,7 +67,7 @@ export class Game {
     }
 
     isValidPlay(playerId: number, play: Play): boolean {
-        if (this.playerTurn === playerId && this.racks.contains(playerId, play.letters) && this.board.isValidPlay(play)) {
+        if (!this.ended && this.playerTurn === playerId && this.racks.contains(playerId, play.letters) && this.board.isValidPlay(play)) {
             const words = this.board.wordsFromPlay(play, this.language);
             return words.every((word) => dictionaries.get(this.language).has(word.letters.join('').toUpperCase()));
         }
@@ -76,11 +76,11 @@ export class Game {
     }
 
     isValidExchange(playerId: number, tiles: string[]): boolean {
-        return this.playerTurn === playerId && this.racks.contains(playerId, tiles) && this.bag.contents.length >= tiles.length;
+        return !this.ended && this.playerTurn === playerId && this.racks.contains(playerId, tiles) && this.bag.contents.length >= tiles.length;
     }
 
     isValidPass(playerId: number): boolean {
-        return this.playerTurn === playerId;
+        return !this.ended && this.playerTurn === playerId;
     }
 
     play(play: Play) {
