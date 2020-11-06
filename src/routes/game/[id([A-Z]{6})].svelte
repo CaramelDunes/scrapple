@@ -22,15 +22,19 @@
             res = await this.fetch(`game.json?id=${page.params.id}`);
         }
 
-        const game = await res.json();
+        if (res.ok) {
+            const game = await res.json();
 
-        return {
-            playerId: playerId,
-            playerKey: playerKey,
-            gameId: page.params.id,
-            rawGame: game.game,
-            tray: game.tray,
-        };
+            return {
+                playerId: playerId,
+                playerKey: playerKey,
+                gameId: page.params.id,
+                rawGame: game.game,
+                tray: game.tray,
+            };
+        }
+
+        this.error(404, "Not found");
     }
 </script>
 
@@ -46,6 +50,7 @@
     import type { Word } from "../../lib/word";
     import Board from "../../components/Board.svelte";
     import Tray from "../../components/Tray.svelte";
+    import Dialog from "../../components/Dialog.svelte";
 
     export let playerId: number;
     export let playerKey: string;
@@ -137,11 +142,11 @@
         }
     }
 
-    const prefixes = playerKey
-        ? ["You", "Your opponent"]
-        : ["Player #1", "Player #2"];
+    const prefixes = playerKey ? ["You", "They"] : ["Player #1", "Player #2"];
 
     if (playerKey && playerId === 1) prefixes.reverse();
+
+    let exchangingTiles = false;
 </script>
 
 <style>
@@ -162,6 +167,7 @@
         flex-direction: column;
         border-radius: 10px;
         border: solid 3px #d0d0d0;
+        max-height: 99vh;
     }
 
     .game-info {
@@ -201,6 +207,20 @@
         text-align: center;
     }
 
+    .card {
+        flex: 1 1 0px;
+        background-color: white;
+        border: 3px solid lightgrey;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        margin: 8px;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
     .tray-container {
         padding: 0.25rem;
     }
@@ -216,9 +236,6 @@
 
     .controls > button {
         flex: 1 1 0;
-    }
-
-    .no-tray {
     }
 
     @media (orientation: landscape) {
@@ -262,6 +279,26 @@
     <title>Game - {gameId}</title>
 </svelte:head>
 
+<svelte:window
+    on:keydown={(e) => {
+        return e.key === 'Escape' && (exchangingTiles = false);
+    }} />
+
+{#if exchangingTiles}
+    <Dialog>
+        <div class="card">
+            Please select the tiles you want to exchange.
+            <div class="controls">
+                <button on:click={() => {}}>Exchange</button>
+                <button
+                    on:click={() => {
+                        exchangingTiles = false;
+                    }}>Cancel</button>
+            </div>
+        </div>
+    </Dialog>
+{/if}
+
 <div class="wrapper">
     <div>
         <div class="board" class:no-tray={!tray || game.ended}>
@@ -288,10 +325,17 @@
                         .map((w) => w.letters.join('') + ` (${w.points})`)
                         .join(', ')}</button>
                 <button
-                    on:click={pass}
+                    on:click={() => {
+                        if (confirm("Are you sure you want to pass? You won't score any points on this turn.")) {
+                            pass();
+                        }
+                    }}
                     disabled={game.playerTurn !== playerId}
                     title="Pass and score 0">Pass</button>
                 <button
+                    on:click={() => {
+                        exchangingTiles = true;
+                    }}
                     disabled={game.playerTurn !== playerId}
                     title="Exchange one or more tiles and score 0">Exchange
                     tiles</button>

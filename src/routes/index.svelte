@@ -50,10 +50,10 @@
 </style>
 
 <svelte:head>
-	<title>Letters & Words</title>
+	<title>Scrapple</title>
 </svelte:head>
 
-<h1>Letters & Words</h1>
+<h1>Scrapple</h1>
 
 <div class="wrapper">
 	<form class="card" action="/game.json" method="post">

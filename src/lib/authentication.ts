@@ -14,6 +14,6 @@ export function generatePlayerKey(gameId: string, playerId: number): string {
         .digest('hex');
 }
 
-export function generateCookie(gameId: string, playerId: number): string {
-    return `${gameId}=${playerId}:${generatePlayerKey(gameId, playerId)}; SameSite=Lax; Max-Age=${3600 * 24 * 7}; Path=/game`
+export function generateCookie(gameId: string, playerId: number, path: string): string {
+    return `${gameId}=${playerId}:${generatePlayerKey(gameId, playerId)}; SameSite=Lax; Max-Age=${3600 * 24 * 7}; Path=${path}`
 }

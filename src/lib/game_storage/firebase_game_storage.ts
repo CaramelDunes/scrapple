@@ -13,7 +13,11 @@ export class FirebaseGameStorage extends GameStorage {
     async get(gameId: string): Promise<Game> {
         const gameRef = database.ref(`game/${gameId}`);
         const snapshot = await gameRef.once('value');
-        return Game.fromPojo(snapshot.val());
+
+        const gamePojo = snapshot.val();
+        if (!gamePojo) return null;
+
+        return Game.fromPojo(gamePojo);
     }
 
     async set(gameId: string, game: Game) {

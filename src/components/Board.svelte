@@ -138,8 +138,8 @@
     {#each scratchBoard.tiles as _, y}
       <div
         class="square"
-        class:triple-word={Board.isTripleWord(x, y)}
         class:double-word={Board.isDoubleWord(x, y)}
+        class:triple-word={Board.isTripleWord(x, y)}
         class:double-letter={Board.isDoubleLetter(x, y)}
         class:triple-letter={Board.isTripleLetter(x, y)}
         data-droptarget={board.tiles[x][y] === ''}

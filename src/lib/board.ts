@@ -20,26 +20,12 @@ export class Board {
         return new Board(tiles);
     }
 
-    static fromPojo(pojo) {
+    static fromPojo(pojo): Board {
         return new Board(pojo.tiles ?? []);
     }
 
     toPojo() {
-        return {
-            tiles: this.tiles
-        };
-    }
-
-    isEmpty(): boolean {
-        for (let x = 0; x < 15; x++) {
-            for (let y = 0; y < 15; y++) {
-                if (this.tiles[x][y] !== '') {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return this;
     }
 
     isValidPlay(play: Play): boolean {
@@ -109,7 +95,7 @@ export class Board {
 
     private findCrossWord(x: number, y: number,
         direction: Direction, letter: string, language: Language): Word {
-        let start;
+        let start: number;
         let points = 0;
         let multiplier = 1;
         let word = [];

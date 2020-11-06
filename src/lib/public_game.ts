@@ -24,7 +24,15 @@ export class PublicGame {
     }
 
     static fromPojo(pojo): PublicGame {
-        return new PublicGame(pojo.language, Board.fromPojo(pojo.board), pojo.playerTurn, pojo.scores, pojo.traySizes, pojo.bagSize, pojo.history.map((item) => HistoryItem.fromPojo(item)), pojo.ended);
+        return new PublicGame(
+            pojo.language,
+            Board.fromPojo(pojo.board),
+            pojo.playerTurn,
+            pojo.scores,
+            pojo.traySizes,
+            pojo.bagSize,
+            pojo.history.map((item) => HistoryItem.fromPojo(item)),
+            pojo.ended);
     }
 
     toPojo() {

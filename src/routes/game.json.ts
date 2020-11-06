@@ -1,6 +1,5 @@
-import { generateCookie, generatePlayerKey, isValidPlayerKey } from "../lib/authentication";
-import { Board } from "../lib/board";
-import { isValidLanguage, Language } from "../lib/language";
+import { generateCookie, isValidPlayerKey } from "../lib/authentication";
+import { isValidLanguage } from "../lib/language";
 import { ErrorWithCode } from "../lib/error_with_code";
 import { Game } from "../lib/game";
 import { TheGameStorage } from "../lib/game_storage/the_game_storage";
@@ -10,13 +9,24 @@ import { pusher } from '../lib/server/pusher';
 
 export async function get(req, res, next) {
     const gameId = req.query.id;
+
+    if (!Game.isValidId(gameId)) {
+        next(new ErrorWithCode('Invalid game id.', 400));
+        return;
+    }
+
     const playerId = parseInt(req.query.playerId ?? '');
-    const playerKey = req.query.playerKey ?? '';
+    const playerKey = req.query.playerKey;
 
     const game: Game = await TheGameStorage.get(gameId);
 
+    if (!game) {
+        next(new ErrorWithCode('Game not found.', 404));
+        return;
+    }
+
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: isValidPlayerKey(gameId, playerId, playerKey) ? game.racks[playerId] : null }));
+    res.end(JSON.stringify({ game: game.toPublicGame().toPojo(), tray: playerKey && isValidPlayerKey(gameId, playerId, playerKey) ? game.racks[playerId] : null }));
 }
 
 export async function post(req, res, next) {
@@ -32,7 +42,11 @@ export async function post(req, res, next) {
     const newGame = Game.new(language);
     await TheGameStorage.set(gameId, newGame);
 
-    res.setHeader('Set-Cookie', generateCookie(gameId, 0));
+    // Prevent the game creator from overwriting his player key if he clicks on the join link.
+    res.setHeader('Set-Cookie',
+        [generateCookie(gameId, 0, `/game/${gameId}`),
+        generateCookie(gameId, 0, `/join`)]);
+
     res.setHeader('Location', `/game/${gameId}`);
     res.statusCode = 302;
     res.end();
@@ -40,6 +54,11 @@ export async function post(req, res, next) {
 
 export async function put(req, res, next) {
     const gameId = req.body.gameId;
+
+    if (!Game.isValidId(gameId)) {
+        next(new ErrorWithCode('Invalid game id.', 400));
+        return;
+    }
 
     const playerId = parseInt(req.body.playerId);
     const playerKey = req.body.playerKey;
@@ -50,10 +69,15 @@ export async function put(req, res, next) {
     }
 
     const game: Game = await TheGameStorage.get(gameId);
+
+    if (!game) {
+        next(new ErrorWithCode('Game not found.', 404));
+        return;
+    }
+
     let success = false;
 
     if (req.body.pass === true) {
-
         if (game.isValidPass(playerId)) {
             game.pass();
             success = true;
@@ -90,7 +114,7 @@ export async function put(req, res, next) {
         pusher.trigger(gameId, 'board', {
             message: publicGame
         });
-    }
 
-    await TheGameStorage.set(gameId, game);
+        await TheGameStorage.set(gameId, game);
+    }
 }

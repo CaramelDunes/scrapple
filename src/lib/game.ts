@@ -37,7 +37,8 @@ export class Game {
     }
 
     static fromPojo(pojo): Game {
-        return new Game(pojo.language,
+        return new Game(
+            pojo.language,
             Board.fromPojo(pojo.board),
             pojo.playerTurn,
             pojo.scores,
@@ -68,8 +69,10 @@ export class Game {
 
     isValidPlay(playerId: number, play: Play): boolean {
         if (!this.ended && this.playerTurn === playerId && this.racks.contains(playerId, play.letters) && this.board.isValidPlay(play)) {
+            const dictionary = dictionaries.get(this.language);
             const words = this.board.wordsFromPlay(play, this.language);
-            return words.every((word) => dictionaries.get(this.language).has(word.letters.join('').toUpperCase()));
+
+            return words.every((word) => dictionary.has(word.letters.join('').toUpperCase()));
         }
 
         return false;
@@ -136,7 +139,7 @@ export class Game {
         return sum;
     }
 
-    static randomId() {
+    static randomId(): string {
         // Generates a random 6 uppercase letters code.
         // 308 915 776 = 26^6
         return Math.floor(Math.random() * 308915776).toString(26).toUpperCase().padStart(6, 'Z')
@@ -150,5 +153,10 @@ export class Game {
             .replace(/7/g, 'S')
             .replace(/8/g, 'R')
             .replace(/9/g, 'Q');
+    }
+
+    static isValidId(gameId: string) {
+        const gameIdFormat = /[A-Z]{6}/;
+        return gameId && gameIdFormat.test(gameId);
     }
 }
