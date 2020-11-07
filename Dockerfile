@@ -1,4 +1,4 @@
-FROM node:12-alpine AS builder
+FROM node:14-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -14,7 +14,7 @@ COPY ./tsconfig.json ./
 
 RUN npm run build
 
-FROM node:12-alpine
+FROM node:14-alpine
 
 ENV NODE_ENV=production
 
