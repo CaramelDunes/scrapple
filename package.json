@@ -1,7 +1,7 @@
 {
-  "name": "letters-and-words",
-  "description": "A game with letters and words.",
-  "version": "0.0.1",
+  "name": "scrapple",
+  "description": "Yet another word game.",
+  "version": "0.1.0",
   "scripts": {
     "dev": "sapper dev",
     "build": "sapper build --legacy",
