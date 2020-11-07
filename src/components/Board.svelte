@@ -2,15 +2,17 @@
   import { dropTarget } from "../actions/drop_target";
 
   import { Board } from "../lib/board";
+  import type { Word } from "../lib/word";
   import { playFromScratchBoard } from "../lib/client/board";
   import type { Language } from "../lib/language";
-  import { Play } from "../lib/play";
+  import { Direction, Play } from "../lib/play";
 
   import Tile from "./Tile.svelte";
 
   export let board: Board;
   export let language: Language;
   export let play: Play;
+  export let highlightedWords: Word[];
 
   let scratchBoard: Board = Board.empty();
 
@@ -84,6 +86,14 @@
       dragValue = "";
     }
   }
+
+  function isHighlighted(x, y, w) {
+    if (w.direction === Direction.Horizontal) {
+      return y === w.y && x >= w.x && x < w.x + w.letters.length;
+    } else {
+      return x === w.x && y >= w.y && y < w.y + w.letters.length;
+    }
+  }
 </script>
 
 <style>
@@ -100,7 +110,6 @@
   }
 
   .square {
-    /* padding: 2px; */
     border-radius: 5px;
     user-select: none;
     border: 1px solid #f4f4f4;
@@ -131,6 +140,12 @@
   .no-pointer {
     pointer-events: none;
   }
+
+  .highlighted {
+    border-width: 0;
+    box-shadow: 0 0 0 3px palegreen;
+    z-index: 99;
+  }
 </style>
 
 <div class="grid">
@@ -142,6 +157,9 @@
         class:triple-word={Board.isTripleWord(x, y)}
         class:double-letter={Board.isDoubleLetter(x, y)}
         class:triple-letter={Board.isTripleLetter(x, y)}
+        class:highlighted={highlightedWords.some((w) =>
+            isHighlighted(x, y, w)
+          )}
         data-droptarget={board.tiles[x][y] === ''}
         use:dropTarget={{ ondrop: (e) => {
             handleDrop(e, x, y);

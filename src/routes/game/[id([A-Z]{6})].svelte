@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+    import type { Preload } from "@sapper/common";
+
     export async function preload(page, session) {
         let playerId;
         let playerKey;
@@ -57,6 +59,8 @@
     export let gameId: string;
     export let rawGame;
     export let tray: string[];
+
+    let highlightedWords: Word[] = [];
 
     let game = PublicGame.fromPojo(rawGame);
 
@@ -304,6 +308,7 @@
         <div class="board" class:no-tray={!tray || game.ended}>
             <Board
                 board={game.board}
+                {highlightedWords}
                 language={game.language}
                 bind:play={currentPlay} />
         </div>
@@ -375,17 +380,25 @@
                         </li>
                     {:else}
                         <li>
-                            {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
-                            played
-                            <b>{item.words
-                                    .map(
-                                        (w) =>
-                                            w.letters.join('') +
-                                            ` (${w.points})`
-                                    )
-                                    .join(' + ')}
-                                =
-                                {item.points}</b>
+                            <div
+                                on:mouseover={() => {
+                                    highlightedWords = item.words;
+                                }}
+                                on:mouseout={() => {
+                                    highlightedWords = [];
+                                }}>
+                                {prefixes[game.playerTurn ^ (i & 1) ^ 1]}
+                                played
+                                <b>{item.words
+                                        .map(
+                                            (w) =>
+                                                w.letters.join('') +
+                                                ` (${w.points})`
+                                        )
+                                        .join(' + ')}
+                                    =
+                                    {item.points}</b>
+                            </div>
                         </li>
                     {/if}
                 {/each}
