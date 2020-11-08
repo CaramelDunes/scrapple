@@ -113,6 +113,8 @@ export class Game {
     pass() {
         this.playerTurn ^= 1;
         this.history.unshift(HistoryItem.passed());
+
+        this.endIf6ScorelessTurns();
     }
 
     exchange(tiles: string[]) {
@@ -121,6 +123,8 @@ export class Game {
 
         this.playerTurn ^= 1;
         this.history.unshift(HistoryItem.exchanged(tiles.length));
+
+        this.endIf6ScorelessTurns();
     }
 
     private substractRackPoints(): number {
@@ -137,6 +141,14 @@ export class Game {
         }
 
         return sum;
+    }
+
+    private endIf6ScorelessTurns() {
+        // The game ends after 6 consecutive scoreless turns.
+        if (this.history.length >= 6
+            && this.history.slice(-6).every((item) => item.passed || item.exchangedTiles > 0)) {
+            this.ended = true;
+        }
     }
 
     static randomId(): string {
