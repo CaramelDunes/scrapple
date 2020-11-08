@@ -1,8 +1,8 @@
-# [Scrapple](https://scrapple.carameldunes.fr) [![Build Status](https://api.cirrus-ci.com/github/CaramelDunes/scrapple.svg)](https://cirrus-ci.com/github/CaramelDunes/scrapple)
-
-## [Play Here!](https://scrapple.carameldunes.fr)
+# [Scrapple - Play Here!](https://scrapple.carameldunes.fr) [![Build Status](https://api.cirrus-ci.com/github/CaramelDunes/scrapple.svg)](https://cirrus-ci.com/github/CaramelDunes/scrapple)
 
 Yet another word game.
+
+Powered by Svelte.
 
 ## Usage
 
@@ -20,10 +20,10 @@ export PUSHER_SECRET=""
 export PUSHER_CLUSTER=""
 ```
 
-Optionally, if you wish to use Firebase Realtime Database for storage, set the following.
+Games are stored as JSON files by default.
+If you wish to use Firebase Realtime Database instead, set the following and make sure the default service account has the Realtime Database Admin role.
 ```bash
 export FIREBASE_DATABASE_URL=""
-export GOOGLE_APPLICATION_CREDENTIALS=""
 ```
 
 Start the server.
