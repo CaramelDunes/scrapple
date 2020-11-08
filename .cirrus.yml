@@ -6,4 +6,4 @@ build_task:
     folder: node_modules
     fingerprint_script: cat package-lock.json
     populate_script: npm ci
-  build_script: npm build
+  build_script: npm run build
