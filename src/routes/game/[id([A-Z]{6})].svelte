@@ -58,7 +58,7 @@
     import type { Word } from "../../lib/word";
     import Board from "../../components/Board.svelte";
     import Tray from "../../components/Tray.svelte";
-    import Dialog from "../../components/Dialog.svelte";
+    import ExchangeDialog from "../../components/ExchangeDialog.svelte";
 
     export let playerId: number;
     export let playerKey: string;
@@ -219,20 +219,6 @@
         text-align: center;
     }
 
-    .card {
-        flex: 1 1 0px;
-        background-color: white;
-        border: 3px solid lightgrey;
-        border-radius: 10px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        margin: 8px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
     .tray-container {
         padding: 0.25rem;
     }
@@ -254,18 +240,18 @@
         .board {
             width: 84vh;
             height: 84vh;
-            font-size: 4.2vh;
+            font-size: 3.2vh;
         }
 
         .no-tray {
             height: 100vh;
             width: 100vh;
-            font-size: 5vh;
+            font-size: 3.8vh;
         }
 
         .tray-container {
             width: 84vh;
-            font-size: 6.7vh;
+            font-size: 5vh;
         }
 
         .column {
@@ -277,12 +263,12 @@
         .board {
             height: 100vw;
             width: 100vw;
-            font-size: 5vw;
+            font-size: 3.8vw;
         }
 
         .tray-container {
             width: 100vw;
-            font-size: 8vw;
+            font-size: 6vw;
         }
     }
 </style>
@@ -297,18 +283,11 @@
     }} />
 
 {#if exchangingTiles}
-    <Dialog>
-        <div class="card">
-            Please select the tiles you want to exchange.
-            <div class="controls">
-                <button on:click={() => {}}>Exchange</button>
-                <button
-                    on:click={() => {
-                        exchangingTiles = false;
-                    }}>Cancel</button>
-            </div>
-        </div>
-    </Dialog>
+    <ExchangeDialog
+        {tray}
+        language={game.language}
+        exchangeCallback={exchangeTiles}
+        closeCallback={() => (exchangingTiles = false)} />
 {/if}
 
 <div class="wrapper">
@@ -346,9 +325,7 @@
                     disabled={game.playerTurn !== playerId}
                     title="Pass and score 0">Pass</button>
                 <button
-                    on:click={() => {
-                        exchangingTiles = true;
-                    }}
+                    on:click={() => (exchangingTiles = true)}
                     disabled={game.playerTurn !== playerId}
                     title="Exchange one or more tiles and score 0">Exchange
                     tiles</button>

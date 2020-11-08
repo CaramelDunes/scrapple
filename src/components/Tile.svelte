@@ -32,7 +32,8 @@
         position: absolute;
         right: 2px;
         top: 2px;
-        font-size: 0.4em;
+        font-size: 0.6em;
+        line-height: 1em;
         pointer-events: none;
         user-select: none;
     }
@@ -51,7 +52,7 @@
         align-items: center;
         padding-top: 3px;
         padding-right: 5px;
-        font-size: 0.75em;
+        font-size: 1em;
         font-weight: bold;
         pointer-events: none;
         user-select: none;
