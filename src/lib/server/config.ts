@@ -6,4 +6,3 @@ export const PUSHER_SECRET = process.env.PUSHER_SECRET;
 export const PUSHER_CLUSTER = process.env.PUSHER_CLUSTER;
 
 export const FIREBASE_DATABASE_URL = process.env.FIREBASE_DATABASE_URL;
-export const GOOGLE_APPLICATION_CREDENTIALS = process.env.GOOGLE_APPLICATION_CREDENTIALS;
