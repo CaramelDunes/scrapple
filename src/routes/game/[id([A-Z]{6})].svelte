@@ -1,38 +1,49 @@
 <script context="module" lang="ts">
-    import type { Preload } from "@sapper/common";
+    function parseCookie(cookie: string): [number, string] {
+        const tokens = cookie.split(":");
+
+        if (tokens.length === 2 && tokens[1].length === 32) {
+            return [parseInt(tokens[0]), tokens[1]];
+        }
+
+        return [null, null];
+    }
 
     export async function preload(page, session) {
+        const gameId = page.params.id;
         let playerId;
         let playerKey;
 
-        if (page.params.id in session.cookies) {
-            const tokens = session.cookies[page.params.id].split(":");
-
-            if (tokens.length === 2) {
-                playerId = parseInt(tokens[0]);
-                playerKey = tokens[1];
-            }
+        if (gameId in session.cookies) {
+            [playerId, playerKey] = parseCookie(session.cookies[gameId]);
         }
 
         let res;
 
         if (playerKey) {
             res = await this.fetch(
-                `game.json?id=${page.params.id}&playerId=${playerId}&playerKey=${playerKey}`
+                `game.json?id=${gameId}&playerId=${playerId}&playerKey=${playerKey}`
             );
         } else {
-            res = await this.fetch(`game.json?id=${page.params.id}`);
+            res = await this.fetch(`game.json?id=${gameId}`);
         }
 
         if (res.ok) {
             const game = await res.json();
 
+            // No need to send the cookies back.
+            delete session.cookies;
+
+            const config = await import("../../lib/server/config");
+
             return {
+                gameId: gameId,
                 playerId: playerId,
                 playerKey: playerKey,
-                gameId: page.params.id,
                 rawGame: game.game,
                 tray: game.tray,
+                pusherKey: config.PUSHER_KEY,
+                pusherCluster: config.PUSHER_CLUSTER,
             };
         }
 
@@ -42,11 +53,6 @@
 
 <script lang="ts">
     import Pusher from "pusher-js";
-    import {
-        PUSHER_APP_CLUSTER,
-        PUSHER_APP_KEY,
-    } from "../../lib/client/pusher";
-
     import { onMount } from "svelte";
     import { PublicGame } from "../../lib/public_game";
     import type { Word } from "../../lib/word";
@@ -59,6 +65,8 @@
     export let gameId: string;
     export let rawGame;
     export let tray: string[];
+    export let pusherKey: string;
+    export let pusherCluster: string;
 
     let highlightedWords: Word[] = [];
 
@@ -67,11 +75,11 @@
     let channel;
 
     onMount(() => {
-        if (!game.ended) {
+        if (pusherKey && !game.ended) {
             Pusher.logToConsole = true;
 
-            const pusher = new Pusher(PUSHER_APP_KEY, {
-                cluster: PUSHER_APP_CLUSTER,
+            const pusher = new Pusher(pusherKey, {
+                cluster: pusherCluster,
             });
 
             channel = pusher.subscribe(gameId);

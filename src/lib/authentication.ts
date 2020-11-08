@@ -1,6 +1,5 @@
 import { createHash } from "crypto";
-
-const PEPPER = 'pepper';
+import { PEPPER } from './server/config';
 
 export function isValidPlayerKey(gameId: string, playerId: number, playerKey: string): boolean {
     return generatePlayerKey(gameId, playerId) === playerKey;

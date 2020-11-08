@@ -6,9 +6,28 @@ Yet another word game.
 
 ## Usage
 
+Build the bundles.
 ```bash
 npm install
 npm run build
+```
+
+Set the following environment variables.
+```bash
+export PUSHER_APP_ID=""
+export PUSHER_KEY=""
+export PUSHER_SECRET=""
+export PUSHER_CLUSTER=""
+```
+
+Optionally, if you wish to use Firebase Realtime Database for storage, set the following.
+```bash
+export FIREBASE_DATABASE_URL=""
+export GOOGLE_APPLICATION_CREDENTIALS=""
+```
+
+Start the server.
+```bash
 npm start
 ```
 

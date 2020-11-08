@@ -1,8 +1,9 @@
 import Pusher from "pusher";
+import { PUSHER_APP_ID, PUSHER_CLUSTER, PUSHER_KEY, PUSHER_SECRET } from "./config";
 
 export const pusher = new Pusher({
-    appId: '1100471',
-    key: '58e214a5b9ae26e568e5',
-    secret: '1aef1cb76cb0c0bc0f84',
-    cluster: 'eu'
+    appId: PUSHER_APP_ID,
+    key: PUSHER_KEY,
+    secret: PUSHER_SECRET,
+    cluster: PUSHER_CLUSTER
 });

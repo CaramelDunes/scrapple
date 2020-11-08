@@ -1,10 +1,11 @@
 import * as admin from 'firebase-admin';
 import { Game } from "../game";
+import { FIREBASE_DATABASE_URL } from '../server/config';
 import { GameStorage } from './game_storage';
 
 admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    databaseURL: 'https://letters-and-words.firebaseio.com'
+    databaseURL: FIREBASE_DATABASE_URL
 });
 
 const database = admin.database();
