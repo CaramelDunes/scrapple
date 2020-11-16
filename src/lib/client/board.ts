@@ -102,3 +102,21 @@ export function playFromScratchBoard(board: Board, scratchBoard: Board): [Play, 
 
     return [null, PlayError.Empty];
 }
+
+export function updateScratchBoard(referenceBoard: Board, scratchBoard: Board): string[] {
+    const kickedTiles = [];
+
+    for (let x = 0; x < 15; x++) {
+        for (let y = 0; y < 15; y++) {
+            if (
+                scratchBoard.tiles[x][y] !== "" &&
+                referenceBoard.tiles[x][y] !== ""
+            ) {
+                kickedTiles.push(scratchBoard.tiles[x][y]);
+                scratchBoard.tiles[x][y] = '';
+            }
+        }
+    }
+
+    return kickedTiles;
+}

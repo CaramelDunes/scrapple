@@ -6,20 +6,8 @@
     import { shuffle } from "../lib/shuffle";
     import type { Language } from "../lib/language";
 
-    export let letters: string[];
+    export let tray: string[];
     export let language: Language;
-
-    let tray = [...letters, ""];
-
-    $: updateTray(letters);
-
-    function updateTray(letters: string[]) {
-        tray = [...letters];
-
-        for (let i = tray.length; i < 8; i++) {
-            tray.push("");
-        }
-    }
 
     let draggedIndex: number;
     let draggedLetter: string;

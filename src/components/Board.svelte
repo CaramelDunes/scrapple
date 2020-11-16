@@ -13,28 +13,9 @@
   export let language: Language;
   export let play: Play;
   export let highlightedWords: Word[];
+  export let scratchBoard: Board;
 
-  let scratchBoard: Board = Board.empty();
-
-  $: scratchBoard = mergeBoard(board);
   $: play = playFromScratchBoard(board, scratchBoard)[0];
-
-  function mergeBoard(referenceBoard: Board) {
-    return Board.empty();
-
-    for (let x = 0; x < 15; x++) {
-      for (let y = 0; y < 15; y++) {
-        if (
-          scratchBoard.tiles[x][y] !== "" &&
-          referenceBoard.tiles[x][y] !== ""
-        ) {
-          return Board.empty();
-        }
-      }
-    }
-
-    return scratchBoard;
-  }
 
   let dragValue: string = "";
   let dragX: number;
@@ -157,9 +138,7 @@
         class:triple-word={Board.isTripleWord(x, y)}
         class:double-letter={Board.isDoubleLetter(x, y)}
         class:triple-letter={Board.isTripleLetter(x, y)}
-        class:highlighted={highlightedWords.some((w) =>
-            isHighlighted(x, y, w)
-          )}
+        class:highlighted={highlightedWords.some((w) => isHighlighted(x, y, w))}
         data-droptarget={board.tiles[x][y] === ''}
         use:dropTarget={{ ondrop: (e) => {
             handleDrop(e, x, y);

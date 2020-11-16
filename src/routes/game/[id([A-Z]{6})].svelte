@@ -60,6 +60,9 @@
     import History from "../../components/History.svelte";
     import Tray from "../../components/Tray.svelte";
     import ExchangeDialog from "../../components/ExchangeDialog.svelte";
+    import { updateScratchBoard } from "../../lib/client/board";
+    import { trayFromLetters } from "../../lib/client/tray";
+    import { Board as libBoard } from "../../lib/board";
 
     export let playerId: number;
     export let playerKey: string;
@@ -69,10 +72,12 @@
     export let pusherKey: string;
     export let pusherCluster: string;
 
-    let highlightedWords: Word[] = [];
-
     let game = PublicGame.fromPojo(rawGame);
+    let trayContents = ["", "", "", "", "", "", "", ""];
+    let scratchBoard: libBoard = libBoard.empty();
+    trayContents = trayFromLetters(tray, trayContents);
 
+    let highlightedWords: Word[] = [];
     let channel;
 
     onMount(() => {
@@ -88,6 +93,16 @@
             channel.bind("board", function (data) {
                 console.log("From Pusher", data.message);
                 game = PublicGame.fromPojo(data.message);
+                const kickedOut = updateScratchBoard(game.board, scratchBoard);
+
+                for (
+                    let i = 0;
+                    i < trayContents.length && kickedOut.length > 0;
+                    i++
+                ) {
+                    if (trayContents[i] === "")
+                        trayContents[i] = kickedOut.pop();
+                }
             });
         }
     });
@@ -108,7 +123,9 @@
             if (pojo.success) {
                 console.log("From Put", pojo);
                 game = PublicGame.fromPojo(pojo.game);
+                scratchBoard = libBoard.empty();
                 tray = pojo.tray;
+                trayContents = trayFromLetters(tray, trayContents);
             }
         } else {
             console.log("Not ok");
@@ -279,12 +296,13 @@
                 board={game.board}
                 {highlightedWords}
                 language={game.language}
-                bind:play={currentPlay} />
+                bind:play={currentPlay}
+                bind:scratchBoard />
         </div>
 
         {#if tray && !game.ended}
             <div class="tray-container">
-                <Tray language={game.language} letters={tray} />
+                <Tray language={game.language} bind:tray={trayContents} />
             </div>
         {/if}
 
