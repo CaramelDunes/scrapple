@@ -21,7 +21,5 @@ export function trayFromLetters(letters: string[], oldTray: string[]): string[] 
         tray[i] = letter;
     }
 
-    console.log(tray)
-
     return tray;
 }

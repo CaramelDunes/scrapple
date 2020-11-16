@@ -1,4 +1,4 @@
-# [Scrapple - Play Here!](https://scrapple.carameldunes.fr) [![Build Status](https://api.cirrus-ci.com/github/CaramelDunes/scrapple.svg)](https://cirrus-ci.com/github/CaramelDunes/scrapple)
+# [<img src="https://github.com/CaramelDunes/scrapple/raw/main/static/favicon.png?raw=1" width="64" height="64" alt="Logo"> Scrapple - Play Here!](https://scrapple.carameldunes.fr) [![Build Status](https://api.cirrus-ci.com/github/CaramelDunes/scrapple.svg)](https://cirrus-ci.com/github/CaramelDunes/scrapple)
 
 Yet another word game.
 
