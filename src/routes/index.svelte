@@ -74,7 +74,12 @@
 	</form>
 	<form class="card" action="/join" method="get">
 		<h2>Join Game</h2>
-		<input type="text" size="6" maxlength="6" name="id" />
+		<input
+			type="text"
+			size="6"
+			name="id"
+			pattern="[a-zA-Z]{'{'}6{'}'}"
+			required />
 		<input type="submit" value="Play!" />
 	</form>
 </div>
