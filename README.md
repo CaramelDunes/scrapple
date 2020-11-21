@@ -2,6 +2,10 @@
 
 Yet another word game.
 
+[Example game in French](https://scrapple.carameldunes.fr/game/RMLDQY)
+
+[Example game in English](https://scrapple.carameldunes.fr/game/STUNAQ)
+
 Powered by Svelte.
 
 ## Usage
