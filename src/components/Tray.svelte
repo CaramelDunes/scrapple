@@ -8,6 +8,7 @@
 
     export let tray: string[];
     export let language: Language;
+    export let retrieveTilesCallback: () => void;
 
     let draggedIndex: number;
     let draggedLetter: string;
@@ -73,8 +74,11 @@
         pointer-events: none;
     }
 
-    button {
-        background-color: transparent;
+    .icons {
+        justify-self: center;
+        display: flex;
+        flex-direction: column;
+        width: 50%;
     }
 </style>
 
@@ -106,5 +110,11 @@
             {/if}
         </div>
     {/each}
-    <button on:click={shuffleTray}>🔀</button>
+    <div class="icons">
+        <img on:click={shuffleTray} src="/random.svg" alt="Shuffle tray" />
+        <img
+            on:click={retrieveTilesCallback}
+            src="/eraser.svg"
+            alt="Retrieve tiles" />
+    </div>
 </div>

@@ -75,7 +75,10 @@
     let game = PublicGame.fromPojo(rawGame);
     let trayContents = ["", "", "", "", "", "", "", ""];
     let scratchBoard: libBoard = libBoard.empty();
-    trayContents = trayFromLetters(tray, trayContents);
+
+    if (tray) {
+        trayContents = trayFromLetters(tray, trayContents);
+    }
 
     let highlightedWords: Word[] = [];
     let channel;
@@ -158,6 +161,11 @@
             playerKey: playerKey,
             pass: true,
         });
+    }
+
+    function retrieveTiles() {
+        scratchBoard = libBoard.empty();
+        trayContents = trayFromLetters(tray, trayContents);
     }
 
     let playTooltip = "";
@@ -302,7 +310,10 @@
 
         {#if tray && !game.ended}
             <div class="tray-container">
-                <Tray language={game.language} bind:tray={trayContents} />
+                <Tray
+                    language={game.language}
+                    bind:tray={trayContents}
+                    retrieveTilesCallback={retrieveTiles} />
             </div>
         {/if}
 
@@ -346,7 +357,6 @@
             <div>This game's code: {gameId}.</div>
         </div>
 
-        <!-- <div>${"location.href.replace('game', 'join')"}<a href="s">📋</a></div> -->
         <div class="header">History</div>
         <History {game} bind:highlightedWords {prefixes} />
     </div>
